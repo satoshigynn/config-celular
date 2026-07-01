@@ -140,7 +140,10 @@
       <h1>Configurador de Celular <span id="verBadge" style="font-size:12px;font-weight:600;color:#8aa0b6;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;margin-left:8px;vertical-align:middle"></span></h1>
       <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
     </div>
-    <button class="btn-ghost btn-sm" onclick="showNews()" style="margin-left:auto;align-self:flex-start">✨ Novidades</button>
+    <span style="margin-left:auto;display:flex;gap:8px;align-self:flex-start">
+      <button class="btn-ghost btn-sm" onclick="atualizarPrograma()">⬆ Atualizar</button>
+      <button class="btn-ghost btn-sm" onclick="showNews()">✨ Novidades</button>
+    </span>
   </header>
   <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao){e.textContent='v'+j.versao;if(j.versao==='2.0'&&!localStorage.getItem('news_2_0')){localStorage.setItem('news_2_0','1');setTimeout(showNews,700);}}}).catch(function(){});</script>
 
@@ -157,6 +160,19 @@
         <li>⬆ <b>Atualização pela nuvem</b> — o botão "Atualizar programa" baixa só o que mudou.</li>
         <li>🏷 <b>Versão no cabeçalho</b> — sempre visível ao lado do título.</li>
       </ul>
+    </div>
+  </div>
+
+  <!-- popup: nova versao disponivel -->
+  <div id="updateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:110;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeUpdateModal()">
+    <div style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:430px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
+      <h2 style="margin:0 0 8px;font-size:19px">⬆ Atualização disponível</h2>
+      <p style="margin:6px 0;font-size:14px;color:#c9d4e0">Há uma nova versão do programa: <b id="upVer"></b>.</p>
+      <p id="upNotas" class="hint" style="margin:6px 0 0"></p>
+      <div style="display:flex;gap:9px;justify-content:flex-end;margin-top:18px">
+        <button class="btn-ghost btn-sm" onclick="dismissUpdate()">Depois</button>
+        <button class="btn-ghost btn-sm" style="border-color:#e2703a;color:#f0a072" onclick="closeUpdateModal();atualizarPrograma()">⬆ Atualizar agora</button>
+      </div>
     </div>
   </div>
 
@@ -927,6 +943,21 @@ function saveShot(){
 }
 // ---- modal novidades ----
 function showNews(){ const m=document.getElementById('newsModal'); if(m) m.style.display='flex'; }
+// ---- aviso automatico de nova versao ----
+let _updRemota='';
+async function checkForUpdatesOnLoad(){
+  try{
+    const j=await (await fetch('/api/update-check')).json();
+    if(!(j&&j.configured&&j.ok&&j.total>0)) return;              // nada novo / nao configurado
+    if(localStorage.getItem('update_dismissed')===j.versaoRemota) return; // ja adiado essa versao
+    _updRemota=j.versaoRemota;
+    document.getElementById('upVer').textContent=j.versaoRemota+(j.versaoLocal?(' (atual: '+j.versaoLocal+')'):'');
+    document.getElementById('upNotas').textContent=j.notas||'';
+    document.getElementById('updateModal').style.display='flex';
+  }catch(_){}
+}
+function closeUpdateModal(){ const m=document.getElementById('updateModal'); if(m) m.style.display='none'; }
+function dismissUpdate(){ if(_updRemota) localStorage.setItem('update_dismissed',_updRemota); closeUpdateModal(); }
 // ---- permissões em massa (apps do scan) ----
 function permsBulk(action){
   if(running){ toast('Aguarde a tarefa atual terminar'); return; }
@@ -1023,6 +1054,7 @@ function showTab(name){
 }
 
 checkDevice(); setInterval(checkDevice,4000); loadResetApps();
+setTimeout(checkForUpdatesOnLoad,1500);   // avisa automaticamente se houver versao nova
 </script>
 </body>
 </html>

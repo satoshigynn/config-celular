@@ -1,7 +1,7 @@
 {
-    "versao":  "2.0",
+    "versao":  "2.1",
     "data":  "2026-06-30",
-    "notas":  "Espelho da tela ao vivo, diagnostico visual com medidores e modal de novidades",
+    "notas":  "Botao Atualizar no topo e aviso automatico de nova versao",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "e6a072bc9f0083d9bbdf2a3ec760d447757cc0de4dc57b3af1be36cb4ded8924"
+                         "sha256":  "47401200cbe35e6010c9f353f0c0f934073a05b27d82aa7b0045cb03719365ea"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
