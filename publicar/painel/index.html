@@ -145,7 +145,7 @@
       <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
     </div>
     <span style="margin-left:auto;display:flex;gap:8px;align-self:flex-start">
-      <button class="btn-ghost btn-sm" id="btnAtualizar" onclick="atualizarPrograma()" style="position:relative">⬆ Atualizar<span id="updDot" style="display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #0d1420"></span></button>
+      <button class="btn-ghost btn-sm" id="btnAtualizar" onclick="atualizarPrograma()" style="position:relative">⬆ Atualizar<span id="updDot" aria-hidden="true" style="display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #0d1420"></span></button>
       <button class="btn-ghost btn-sm" onclick="showNews()">✨ Novidades</button>
     </span>
   </header>
@@ -153,12 +153,13 @@
 
   <!-- modal Novidades -->
   <div id="newsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
-    <div style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:470px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
+    <div role="dialog" aria-modal="true" aria-label="Novidades da versão" tabindex="-1" style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:470px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
-        <h2 style="margin:0;font-size:19px">✨ Novidades da versão 3.0</h2>
-        <button class="btn-ghost btn-sm" onclick="document.getElementById('newsModal').style.display='none'">✕</button>
+        <h2 style="margin:0;font-size:19px">✨ Novidades da versão 3.2</h2>
+        <button class="btn-ghost btn-sm" aria-label="Fechar" onclick="document.getElementById('newsModal').style.display='none'">✕</button>
       </div>
       <ul style="margin:12px 0 4px;padding-left:18px;line-height:1.75;font-size:14px;color:#c9d4e0">
+        <li>♿ <b>Acessibilidade</b> — modais com teclado (Esc), foco e suporte a leitores de tela.</li>
         <li>🔔 <b>Aviso de atualização</b> — popup automático e uma bolinha no botão quando sai versão nova.</li>
         <li>⬆ <b>Atualizar no topo</b> — botão de atualização no cabeçalho, sempre à mão.</li>
         <li>📸 <b>Espelho da tela</b> — veja a tela do celular ao vivo e baixe prints (aba Avançado).</li>
@@ -169,7 +170,7 @@
 
   <!-- popup: nova versao disponivel -->
   <div id="updateModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:110;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeUpdateModal()">
-    <div style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:430px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
+    <div role="dialog" aria-modal="true" aria-label="Atualização disponível" tabindex="-1" style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:430px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
       <h2 style="margin:0 0 8px;font-size:19px">⬆ Atualização disponível</h2>
       <p style="margin:6px 0;font-size:14px;color:#c9d4e0">Há uma nova versão do programa: <b id="upVer"></b>.</p>
       <p id="upNotas" class="hint" style="margin:6px 0 0"></p>
@@ -322,7 +323,7 @@
         </span>
       </div>
       <div id="appsWrap" style="display:none">
-        <input id="appsFilter" placeholder="filtrar nome ou pacote…" oninput="renderApps()"
+        <input id="appsFilter" aria-label="Filtrar apps por nome ou pacote" placeholder="filtrar nome ou pacote…" oninput="renderApps()"
           style="width:100%;margin-bottom:8px;background:#05080c;color:#cdd6e0;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px">
         <div id="appsList" style="max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:3px"></div>
         <div class="hint" style="margin:6px 0">Legenda: 🟢 seguro remover · 🟡 cuidado · 🔴 essencial (não remover)</div>
@@ -367,7 +368,7 @@
   </div><!-- fim applayout -->
 
 </div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 // ===== Fundo de NODES interativo (replica de 190.102.43.124/grade) =====
@@ -946,7 +947,7 @@ function saveShot(){
   a.download='tela-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.png'; a.click(); toast('Print baixado');
 }
 // ---- modal novidades ----
-function showNews(){ const m=document.getElementById('newsModal'); if(m) m.style.display='flex'; }
+function showNews(){ const m=document.getElementById('newsModal'); if(m){ m.style.display='flex'; const d=m.querySelector('[role=dialog]'); if(d) d.focus(); } }
 // ---- aviso automatico de nova versao ----
 let _updRemota='';
 async function checkForUpdatesOnLoad(){
@@ -958,7 +959,7 @@ async function checkForUpdatesOnLoad(){
     if(localStorage.getItem('update_dismissed')===j.versaoRemota) return; // adiado: mantem so a bolinha
     document.getElementById('upVer').textContent=j.versaoRemota+(j.versaoLocal?(' (atual: '+j.versaoLocal+')'):'');
     document.getElementById('upNotas').textContent=j.notas||'';
-    document.getElementById('updateModal').style.display='flex';
+    var um=document.getElementById('updateModal'); um.style.display='flex'; var ud=um.querySelector('[role=dialog]'); if(ud) ud.focus();
   }catch(_){}
 }
 function closeUpdateModal(){ const m=document.getElementById('updateModal'); if(m) m.style.display='none'; }
@@ -1060,6 +1061,8 @@ function showTab(name){
 
 checkDevice(); setInterval(checkDevice,4000); loadResetApps();
 setTimeout(checkForUpdatesOnLoad,1500);   // avisa automaticamente se houver versao nova
+// acessibilidade: fecha modais abertos com a tecla Esc
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ ['newsModal','updateModal'].forEach(function(id){ var m=document.getElementById(id); if(m&&m.style.display==='flex') m.style.display='none'; }); } });
 </script>
 </body>
 </html>

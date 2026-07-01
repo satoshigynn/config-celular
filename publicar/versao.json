@@ -1,7 +1,7 @@
 {
-    "versao":  "3.1",
+    "versao":  "3.2",
     "data":  "2026-06-30",
-    "notas":  "Aviso automatico para reiniciar o painel quando o servidor esta desatualizado",
+    "notas":  "Acessibilidade: modais com Esc/foco/dialog, avisos anunciaveis e rotulos (skill fixing-accessibility)",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "6a38a2ab3a949c948c928a399ba6be843e8eee8c7a812649104a66026a94c92b"
+                         "sha256":  "573f3a3a5a5b7b4239c735745bd3d60f4032660ee9638bd2679052f4f14f8689"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
