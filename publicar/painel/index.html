@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Config Realme · Painel</title>
+<style>
+  :root{
+    /* dark "Claude": cinza quente neutro (sem tom de azul) + acento coral */
+    --bg:#1a1815; --bg2:#211e1a; --card:#262320; --card2:#302c27;
+    --line:#39342e; --line2:#494339;
+    --txt:#f2efe7; --muted:#a8a298; --faint:#6e685e;
+    --accent:#d97757; --accent-d:#bf5f3a; --accent-glow:rgba(217,119,87,.22);
+    --blue:#cf9b6b; --warn:#e0a44e; --err:#e07a63; --ok:#74c98e;
+    --r:14px; --r2:10px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    color:var(--txt);min-height:100vh;line-height:1.5;
+    background:
+      radial-gradient(1100px 520px at 88% -12%, rgba(217,119,87,.06), transparent 60%),
+      var(--bg);
+    display:flex;justify-content:center;padding:28px 18px 60px;
+  }
+  #particleCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .wrap{width:100%;max-width:1180px;animation:fade .4s ease;position:relative;z-index:1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media(max-width:880px){.grid2{grid-template-columns:1fr}}
+  .applayout{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start}
+  @media(max-width:980px){.applayout{grid-template-columns:1fr}}
+  .tabs{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .tab{background:var(--card2);border:1px solid var(--line);color:var(--muted);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer}
+  .tab:hover{color:var(--txt);border-color:var(--line2)}
+  .tab.active{background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#2a1206;border-color:transparent;box-shadow:0 6px 16px -8px var(--accent-glow)}
+  .tab-panel{animation:fade .3s ease}
+  .sticky{position:sticky;top:18px}
+  .card.tight{margin-bottom:0}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- header ---------- */
+  header{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .logo{
+    width:52px;height:52px;border-radius:15px;flex:0 0 auto;display:grid;place-items:center;font-size:26px;
+    background:linear-gradient(140deg,#e0875f,#bf5f3a);box-shadow:0 8px 24px -8px var(--accent-glow);
+  }
+  header h1{margin:0;font-size:21px;letter-spacing:-.3px;font-weight:700}
+  header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+
+  /* ---------- cards ---------- */
+  .card{
+    background:linear-gradient(180deg,var(--card),var(--bg2));
+    border:1px solid var(--line);border-radius:var(--r);padding:18px 18px;margin-bottom:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 10px 30px -22px #000;
+  }
+  .card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .card-h .t{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+
+  /* ---------- device strip ---------- */
+  .device{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .pulse{position:relative;width:14px;height:14px;border-radius:50%;background:var(--faint);flex:0 0 auto}
+  .pulse.ok{background:var(--ok)} .pulse.warn{background:var(--warn)} .pulse.err{background:var(--err)}
+  .pulse.ok::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--ok);animation:ring 1.6s ease-out infinite;opacity:0}
+  @keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(1.8);opacity:0}}
+  .device .name{font-size:16px;font-weight:600}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);
+        background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+
+  /* ---------- buttons ---------- */
+  button{font-family:inherit;cursor:pointer;border:0;border-radius:var(--r2);font-weight:600;transition:.15s;font-size:14px}
+  button:active{transform:translateY(1px)}
+  button:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-primary{
+    background:linear-gradient(180deg,var(--accent),var(--accent-d));color:#04130d;padding:13px 26px;font-size:15px;font-weight:700;
+    box-shadow:0 8px 20px -10px var(--accent-glow);
+  }
+  .btn-primary:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 10px 26px -8px var(--accent-glow)}
+  .btn-ghost{background:var(--card2);border:1px solid var(--line2);color:var(--txt);padding:9px 15px}
+  .btn-ghost:hover{border-color:#3a4757;background:#202a37}
+  .btn-sm{padding:6px 12px;font-size:12.5px}
+  .pill{background:transparent;border:1px solid var(--line2);color:var(--muted);padding:7px 14px;border-radius:999px;font-size:13px}
+  .pill:hover{color:var(--txt);border-color:var(--accent);background:rgba(52,211,153,.06)}
+
+  /* ---------- steps ---------- */
+  .steps{display:flex;flex-direction:column;gap:8px}
+  .step{display:flex;align-items:center;gap:13px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;
+        background:var(--card2);transition:.15s;cursor:pointer}
+  .step:hover{border-color:var(--line2);transform:translateX(2px)}
+  .step .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:17px;
+            background:#0e141c;border:1px solid var(--line);flex:0 0 auto}
+  .step .tx{flex:1;min-width:0}
+  .step .tx b{font-size:14px;font-weight:600;display:block}
+  .step .tx small{color:var(--muted);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat{font-size:15px;min-width:18px;text-align:center}
+  /* switch */
+  .switch{position:relative;width:42px;height:24px;flex:0 0 auto}
+  .switch input{position:absolute;opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:#2b3543;border-radius:999px;transition:.2s}
+  .slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;top:3px;background:#8a97a8;border-radius:50%;transition:.2s}
+  .switch input:checked + .slider{background:linear-gradient(180deg,var(--accent),var(--accent-d))}
+  .switch input:checked + .slider::before{transform:translateX(18px);background:#fff}
+
+  .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .chk{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13.5px;cursor:pointer;user-select:none}
+  .chk input{width:16px;height:16px;accent-color:var(--accent)}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .cat-h{margin:16px 0 8px;font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+  .cat-h::after{content:'';flex:1;height:1px;background:var(--line)}
+  #resetList > .cat-h:first-child{margin-top:2px}
+
+  /* ---------- log ---------- */
+  #log{background:#05080c;border:1px solid var(--line);border-radius:var(--r2);padding:14px;height:62vh;min-height:360px;overflow:auto;
+       font-family:'Cascadia Code',Consolas,monospace;font-size:12.5px;line-height:1.55;white-space:pre-wrap}
+  #log::-webkit-scrollbar{width:9px} #log::-webkit-scrollbar-thumb{background:#222b38;border-radius:9px}
+  #log .l{color:#aeb9c7} #log .ok{color:var(--ok)} #log .warn{color:var(--warn)} #log .err{color:var(--err)}
+  #log .head{color:var(--blue);font-weight:700}
+  #log:empty::before{content:'O log da execução aparece aqui…';color:var(--faint)}
+
+  textarea{width:100%;height:300px;background:#05080c;color:#cdd6e0;border:1px solid var(--line);border-radius:var(--r2);
+           padding:12px;font-family:Consolas,monospace;font-size:12.5px;resize:vertical}
+  .hint{color:var(--muted);font-size:12px}
+  a{color:var(--blue)}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+         background:#0d1420;border:1px solid var(--line2);color:var(--txt);padding:12px 18px;border-radius:12px;
+         font-size:13.5px;font-weight:600;box-shadow:0 16px 40px -16px #000;transition:.25s;z-index:50}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<canvas id="particleCanvas"></canvas>
+<div class="wrap">
+
+  <header>
+    <div class="logo">📱</div>
+    <div>
+      <h1>Configurador de Celular</h1>
+      <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
+    </div>
+  </header>
+
+  <!-- device -->
+  <div class="card">
+    <div class="device">
+      <span id="dot" class="pulse"></span>
+      <span class="name" id="devtxt">Verificando celular…</span>
+      <span class="chips" id="chips"></span>
+      <button class="btn-ghost btn-sm" onclick="checkDevice()">Atualizar</button>
+    </div>
+    <div class="divider"></div>
+    <div class="hint">Conecte por USB com a <b>Depuração USB</b> ligada e autorize este PC.</div>
+  </div>
+
+  <!-- abas -->
+  <div class="tabs">
+    <button class="tab active" data-tab="configurar" onclick="showTab('configurar')">⚙ Configurar</button>
+    <button class="tab" data-tab="resetar" onclick="showTab('resetar')">♻ Resetar apps</button>
+    <button class="tab" data-tab="avancado" onclick="showTab('avancado')">🛠 Avançado</button>
+    <label class="chk" style="margin-left:auto"><input type="checkbox" id="dry"> Simular (dry-run)</label>
+  </div>
+
+  <div class="applayout">
+    <div>
+      <!-- ABA Configurar -->
+      <div class="tab-panel" id="tab-configurar">
+      <!-- steps -->
+      <div class="card">
+        <div class="card-h">
+          <span class="t">▣ Etapas</span>
+          <span style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="pill" onclick="preset('full')">Completo</button>
+            <button class="pill" onclick="preset('clean')">Celular cru</button>
+            <button class="pill" onclick="preset('apps')">Só apps</button>
+            <button class="pill" onclick="setAll(true)">Todas</button>
+            <button class="pill" onclick="setAll(false)">Nenhuma</button>
+          </span>
+        </div>
+        <div class="steps" id="steps"></div>
+      </div>
+      <!-- ação primária -->
+      <div class="card">
+        <div class="toolbar">
+          <button id="run" class="btn-primary" onclick="run()" disabled>▶&nbsp; Configurar celular</button>
+          <button id="stop" class="btn-ghost" onclick="stop()" disabled>■ Parar</button>
+        </div>
+      </div>
+
+      <!-- Ferramentas (parte da aba Configurar) -->
+      <div class="card">
+    <div class="card-h"><span class="t">🛠 Ferramentas</span></div>
+    <div class="toolbar">
+      <button class="btn-ghost btn-sm" onclick="verEstado()">🔍 Ver estado</button>
+      <button class="btn-ghost btn-sm" onclick="updateApks()">⬇ Atualizar APKs</button>
+      <button class="btn-ghost btn-sm" onclick="restore()">↩ Restaurar removidos</button>
+      <button class="btn-ghost btn-sm" onclick="sysUpdate()">⬆ Atualizar sistema</button>
+      <button class="btn-ghost btn-sm" onclick="reboot()">🔄 Reiniciar</button>
+      <button class="btn-ghost btn-sm" onclick="trimFacebook()">🪶 Enxugar Facebook</button>
+      <button class="btn-ghost btn-sm" onclick="atualizarPrograma()">⬆ Atualizar programa</button>
+      <button class="btn-ghost btn-sm" onclick="saveLog()">💾 Baixar log</button>
+    </div>
+      </div>
+      </div><!-- fim aba Configurar -->
+
+      <!-- ABA Resetar apps -->
+      <div class="tab-panel" id="tab-resetar" hidden>
+      <div class="card">
+    <div class="card-h">
+      <span class="t">♻ Resetar apps · limpar dados/logs</span>
+      <button class="btn-ghost btn-sm" onclick="loadResetApps()">Atualizar</button>
+    </div>
+    <div class="hint" style="margin-bottom:12px">
+      Marque os apps e clique em <b>Instalar marcados</b>. Ou use por app: <b>Reinstalar</b> (zera tudo) e <b>Limpar dados</b> (apaga conversas/logs/cache sem remover).
+      Mexe só no perfil principal — os clones (perfil de trabalho) não são afetados. O log aparece em “Log ao vivo”.
+    </div>
+    <div class="toolbar" style="margin-bottom:10px">
+      <button class="btn-ghost btn-sm" onclick="markAll(true)">Marcar todos</button>
+      <button class="btn-ghost btn-sm" onclick="markAll(false)">Nenhum</button>
+      <button class="btn-primary btn-sm" onclick="installMarked()">⬇ Instalar marcados <span id="markCount">(0)</span></button>
+    </div>
+    <div class="steps" id="resetList"><div class="hint">Conecte o celular para listar os apps.</div></div>
+  </div>
+
+      <!-- Clone App: clones internos -->
+      <div class="card">
+        <div class="card-h">
+          <span class="t">👯 Clone App · clones internos</span>
+          <span style="display:flex;gap:7px">
+            <button class="btn-ghost btn-sm" onclick="loadClones()">Listar clones</button>
+            <button class="btn-ghost btn-sm" onclick="openCloneApp()">Abrir app</button>
+          </span>
+        </div>
+        <div class="hint" style="margin-bottom:10px">
+          Cria/remove clones dentro do app <b>Clone App</b> (com.pengyou.cloneapp). Requer o Clone App e o app-alvo instalados.
+          Cada clone novo fica vazio — o login (número + SMS) é manual. <b>Não mexa no celular</b> durante o processo (é automação de tela).
+        </div>
+        <div class="toolbar">
+          <select id="cloneAppSel" style="background:var(--card2);color:var(--txt);border:1px solid var(--line2);border-radius:8px;padding:9px 11px;font-size:13px">
+            <option>WhatsApp</option>
+            <option>WhatsApp Business</option>
+            <option>Telegram</option>
+          </select>
+          <input id="cloneNames" placeholder="nomes: 2,3,4,5,6" style="flex:1;min-width:150px;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px">
+          <button class="btn-primary btn-sm" onclick="clonesAction('create')">➕ Criar clones</button>
+          <button class="btn-ghost btn-sm" onclick="clonesAction('delete')">🗑 Deletar por nome</button>
+        </div>
+        <div id="cloneList"></div>
+      </div>
+      </div><!-- fim aba Resetar -->
+
+      <!-- ABA Avançado -->
+      <div class="tab-panel" id="tab-avancado" hidden>
+      <!-- diagnóstico -->
+      <div class="card">
+        <div class="card-h">
+          <span class="t">🩺 Diagnóstico do aparelho</span>
+          <button class="btn-ghost btn-sm" onclick="loadDiag()">Atualizar</button>
+        </div>
+        <div id="diagWrap"><div class="hint">Conecte o celular e clique em Atualizar.</div></div>
+      </div>
+      <!-- scan apps -->
+      <div class="card">
+      <div class="card-h">
+        <span class="t">🔎 Apps do celular</span>
+        <span style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+          <label class="chk"><input type="checkbox" id="appsAll"> Todos</label>
+          <button class="btn-ghost btn-sm" onclick="scanApps()">Escanear</button>
+        </span>
+      </div>
+      <div id="appsWrap" style="display:none">
+        <input id="appsFilter" placeholder="filtrar nome ou pacote…" oninput="renderApps()"
+          style="width:100%;margin-bottom:8px;background:#05080c;color:#cdd6e0;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px">
+        <div id="appsList" style="max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:3px"></div>
+        <div class="hint" style="margin:6px 0">Legenda: 🟢 seguro remover · 🟡 cuidado · 🔴 essencial (não remover)</div>
+        <div class="toolbar" style="margin-top:8px">
+          <span class="hint" id="appsSel">0 selecionados</span>
+          <button class="btn-ghost btn-sm" onclick="selSafe()">Selecionar 🟢</button>
+          <button class="btn-ghost btn-sm" onclick="addApps('forceRemove')">→ Remover</button>
+          <button class="btn-ghost btn-sm" onclick="addApps('keepThirdParty')">→ Proteger</button>
+          <button class="btn-ghost btn-sm" onclick="extractSelected()">📥 Extrair APK</button>
+          <button class="btn-ghost btn-sm" onclick="addToPanel()">➕ Adicionar ao painel</button>
+          <button class="btn-ghost btn-sm" onclick="permsBulk('grant')">🔐 Conceder perms</button>
+          <button class="btn-ghost btn-sm" onclick="permsBulk('revoke')">🚫 Revogar perms</button>
+        </div>
+      </div>
+    </div>
+    <!-- config -->
+    <div class="card">
+      <div class="card-h">
+        <span class="t">⚙ Listas (config.json)</span>
+        <span style="display:flex;gap:7px">
+          <button class="btn-ghost btn-sm" id="cfgToggle" onclick="toggleCfg()">Editar</button>
+          <button class="btn-ghost btn-sm" onclick="loadCfg()">Recarregar</button>
+          <button class="btn-primary btn-sm" onclick="saveCfg()">Salvar</button>
+        </span>
+      </div>
+      <div id="cfgWrap" style="display:none">
+        <div class="hint" style="margin-bottom:8px">Edite as listas (debloat, proteger, clonar). É JSON. <span id="cfgMsg"></span></div>
+        <textarea id="cfgText" spellcheck="false" style="height:300px"></textarea>
+      </div>
+    </div>
+      </div><!-- fim aba Avançado -->
+    </div><!-- fim coluna das abas -->
+
+    <!-- DIREITA: log fixo (visível em todas as abas) -->
+    <div class="card sticky">
+      <div class="card-h">
+        <span class="t">⟩ Log ao vivo</span>
+        <button class="btn-ghost btn-sm" onclick="document.getElementById('log').innerHTML=''">Limpar</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div><!-- fim applayout -->
+
+</div>
+<div id="toast"></div>
+
+<script>
+// ===== Fundo de NODES interativo (replica de 190.102.43.124/grade) =====
+(function(){
+  const canvas=document.getElementById('particleCanvas'); const ctx=canvas.getContext('2d');
+  let particles=[]; const particleCount=80, connectionDistance=150, mouseRadius=120;
+  let mouse={x:null,y:null};
+  function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  class Particle{
+    constructor(){ this.x=Math.random()*canvas.width; this.y=Math.random()*canvas.height;
+      this.size=Math.random()*3+1; this.speedX=(Math.random()-0.5)*1; this.speedY=(Math.random()-0.5)*1;
+      this.color='#7a7064'; }
+    update(){ this.x+=this.speedX; this.y+=this.speedY;
+      if(this.x<0||this.x>canvas.width) this.speedX*=-1;
+      if(this.y<0||this.y>canvas.height) this.speedY*=-1;
+      if(mouse.x!==null&&mouse.y!==null){ const dx=mouse.x-this.x, dy=mouse.y-this.y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<mouseRadius){ const f=(mouseRadius-d)/mouseRadius; this.x-=dx*f*0.02; this.y-=dy*f*0.02; } } }
+    draw(){ ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); }
+  }
+  function initParticles(){ particles=[]; for(let i=0;i<particleCount;i++) particles.push(new Particle()); }
+  function connectParticles(){ for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+    const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<connectionDistance){ const o=1-(d/connectionDistance); ctx.beginPath();
+      ctx.strokeStyle='rgba(150,135,120,'+(o*0.35)+')'; ctx.lineWidth=1;
+      ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke(); } } }
+  function connectMouseToParticles(){ if(mouse.x===null||mouse.y===null) return;
+    ctx.beginPath(); ctx.arc(mouse.x,mouse.y,5,0,Math.PI*2); ctx.fillStyle='#d97757'; ctx.fill();
+    const md=200; for(let i=0;i<particles.length;i++){ const dx=mouse.x-particles[i].x, dy=mouse.y-particles[i].y, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<md){ const o=1-(d/md); ctx.beginPath(); ctx.strokeStyle='rgba(217,119,87,'+(o*0.6)+')'; ctx.lineWidth=1.5;
+        ctx.moveTo(mouse.x,mouse.y); ctx.lineTo(particles[i].x,particles[i].y); ctx.stroke(); } } }
+  function animate(){ ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{p.update();p.draw();}); connectParticles(); connectMouseToParticles(); requestAnimationFrame(animate); }
+  window.addEventListener('resize',function(){ resizeCanvas(); initParticles(); });
+  window.addEventListener('mousemove',function(e){ mouse.x=e.x; mouse.y=e.y; });
+  window.addEventListener('mouseout',function(){ mouse.x=null; mouse.y=null; });
+  resizeCanvas(); initParticles(); animate();
+})();
+
+const STEPS = [
+  {flag:'SkipDebloat',     ic:'🧹', t:'Remover bloatware',        d:'Apps de fábrica, jogos e lixo (auto-detecção)', hdr:'Debloat'},
+  {flag:'SkipServices',    ic:'🧊', t:'Congelar serviços',        d:'Push HeyTap + telemetria em segundo plano', hdr:'Congelando servi'},
+  {flag:'SkipApks',        ic:'📦', t:'Instalar APKs',            d:'Pasta /apks: WhatsApp, WA Business, Telegram, Island', hdr:'Instalando APKs'},
+  {flag:'SkipBusiness',    ic:'🏪', t:'WA Business (loja)',  d:'Garante via loja (App Market/Play) se o APK não couber na arquitetura', hdr:'WhatsApp Business (loja)'},
+  {flag:'SkipIsland',      ic:'🏝️', t:'Island + clones',          d:'Perfil de trabalho: WhatsApp, WA Business, Telegram', hdr:'Island: perfil'},
+  {flag:'SkipTheme',       ic:'🌙', t:'Tema escuro',              d:'Ativa o modo noturno do sistema', hdr:'Tema escuro'},
+  {flag:'SkipNativeClone', ic:'👯', t:'Clonador nativo',          d:'Clona WhatsApp e WA Business (realme)', hdr:'Clonador nativo'},
+  {flag:'SkipSuggestions', ic:'🚫', t:'Sugestões de app off',     d:'Desliga "Mostrar aplicativos sugeridos"', hdr:'Mostrar aplicativos sugeridos'},
+];
+const stepsEl = document.getElementById('steps');
+STEPS.forEach(s=>{
+  const l=document.createElement('label'); l.className='step';
+  l.innerHTML=`<span class="ic">${s.ic}</span>
+    <span class="tx"><b>${s.t}</b><small>${s.d}</small></span>
+    <span class="stat" id="st-${s.flag}"></span>
+    <span class="switch"><input type="checkbox" data-flag="${s.flag}" ${s.def===false?'':'checked'}><span class="slider"></span></span>`;
+  stepsEl.appendChild(l);
+});
+function setAll(v){ document.querySelectorAll('#steps input').forEach(c=>c.checked=v); }
+function preset(p){
+  const map={ full:STEPS.filter(s=>s.def!==false).map(s=>s.flag),
+              clean:['SkipDebloat','SkipServices','SkipTheme','SkipSuggestions'],
+              apps:['SkipApks','SkipBusiness','SkipIsland','SkipNativeClone'] };
+  const on=map[p]||[];
+  document.querySelectorAll('#steps input').forEach(c=> c.checked = on.includes(c.dataset.flag));
+  toast('Perfil: '+({full:'Completo',clean:'Celular cru',apps:'Só apps'}[p]||p));
+}
+
+let toastT=null;
+function toast(msg){ const e=document.getElementById('toast'); e.textContent=msg; e.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('show'),2200); }
+
+const logEl=document.getElementById('log');
+function log(line){
+  trackProgress(line);
+  const d=document.createElement('div'); let cls='l';
+  if(line.startsWith('>>')||line.startsWith('==')) cls='head';
+  else if(/\[!\]|\[err|\[erro|FALHOU|FALTA|AVISO/i.test(line)) cls='err';
+  else if(/seria |verifique|ausente|pulad|nao /i.test(line)) cls='warn';
+  else if(/\[removido\]|\[clonado\]|\[instalado\]|\[congelado\]|\[restaurado\]|\[ja |\[ok\]|INSTALADO|sucesso|criado|ativado|desligado/i.test(line)) cls='ok';
+  d.className=cls; d.textContent=line; logEl.appendChild(d); logEl.scrollTop=logEl.scrollHeight;
+}
+// progresso por etapa
+let curStep=null;
+function setStat(flag,sym,color){ const e=document.getElementById('st-'+flag); if(e){ e.textContent=sym; e.style.color=color||''; } }
+function resetStats(){ curStep=null; STEPS.forEach(s=>setStat(s.flag,'')); }
+function markDone(){ if(curStep){ setStat(curStep,'✓','var(--ok)'); curStep=null; } }
+function trackProgress(line){
+  const m=line.match(/^==\s*(.+?)\s*==/); if(!m) return;
+  if(/Resumo final/i.test(m[1])){ markDone(); return; }
+  const st=STEPS.find(s=>s.hdr && m[1].indexOf(s.hdr)>=0);
+  if(st){ markDone(); curStep=st.flag; setStat(curStep,'⏳','var(--warn)'); }
+}
+
+let es=null, deviceOk=false, running=false;
+function setButtons(){ document.getElementById('run').disabled=!deviceOk||running; document.getElementById('stop').disabled=!running; }
+async function checkDevice(){
+  const dot=document.getElementById('dot'), tx=document.getElementById('devtxt'), chips=document.getElementById('chips');
+  try{
+    const r=await fetch('/api/device'); const j=await r.json(); chips.innerHTML='';
+    if(j.status==='ok'){
+      deviceOk=true; dot.className='pulse ok'; tx.textContent=j.model||'Conectado';
+      const add=(t)=>{ const c=document.createElement('span'); c.className='chip'; c.textContent=t; chips.appendChild(c); };
+      add('🟢 Conectado'); if(j.android) add('Android '+j.android); if(j.battery) add('🔋 '+j.battery+'%');
+      if(j.storage) add('💾 '+j.storage); if(j.ram) add('🧠 '+j.ram+' RAM'); if(j.rom) add('🧩 '+j.rom);
+    } else {
+      deviceOk=false;
+      if(j.status==='unauthorized'){ dot.className='pulse warn'; tx.textContent='Autorize a depuração USB no celular'; }
+      else if(j.status==='sem-adb'){ dot.className='pulse err'; tx.textContent='ADB não encontrado'; }
+      else { dot.className='pulse'; tx.textContent='Nenhum celular conectado'; }
+    }
+  }catch(e){ deviceOk=false; dot.className='pulse err'; tx.textContent='Servidor local offline'; }
+  if(deviceOk && !resetLoaded && !running) loadResetApps();
+  else if(!deviceOk && resetLoaded) loadResetApps();
+  if(!running) setButtons();
+}
+function runFlags(skip,dry){
+  if(running) return; running=true; resetStats(); setButtons();
+  es=new EventSource(`/api/run?skip=${skip.join(',')}&dry=${dry}`);
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ markDone(); log('>> Concluído (código '+e.data.split(' ')[1]+').'); toast('Concluído ✓'); notifyDone('Configuração concluída ✓'); stop(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão com o servidor perdida.'); stop(); };
+}
+async function run(){
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  if(running) return;
+  const skip=[...document.querySelectorAll('#steps input:not(:checked)')].map(c=>c.dataset.flag);
+  const dry=document.getElementById('dry').checked;
+  // #2 preflight
+  try{ const pf=await (await fetch('/api/preflight')).json(); const w=[];
+    if(pf.locked) w.push('• A tela parece BLOQUEADA — desbloqueie o celular (a automação de UI pode falhar).');
+    if(pf.battery && +pf.battery<20) w.push('• Bateria baixa ('+pf.battery+'%).');
+    if(pf.wifi===false) w.push('• Sem Wi-Fi — downloads (App Market) usam dados móveis.');
+    if(w.length && !confirm('⚠ Atenção antes de configurar:\n\n'+w.join('\n')+'\n\nContinuar mesmo assim?')) return;
+  }catch(_){}
+  // #3 confirmacao do debloat (mostra quantos/quais)
+  if(!skip.includes('SkipDebloat') && !dry){
+    try{ const pv=await (await fetch('/api/debloat-preview')).json(); const t=pv.targets||[];
+      if(t.length){ const lst=t.slice(0,30).join('\n')+(t.length>30?'\n…(+'+(t.length-30)+' apps)':'');
+        if(!confirm('🧹 O debloat vai REMOVER '+t.length+' app(s):\n\n'+lst+'\n\nConfirmar remoção?')) return; }
+    }catch(_){}
+  }
+  runFlags(skip, dry?'1':'0');
+}
+function verEstado(){ if(!deviceOk){ toast('Conecte o celular primeiro'); return; } log('== Ver estado atual =='); runFlags(STEPS.map(s=>s.flag),'0'); }
+function restore(){ if(running) return; if(!confirm('Restaurar os apps que o debloat removeu deste aparelho?')) return;
+  running=true; setButtons(); log('== Restaurar removidos ==');
+  es=new EventSource('/api/restore');
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ log('>> Restauração concluída.'); toast('Restauração concluída'); notifyDone('Restauração concluída'); stop(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); }; }
+function updateApks(){ if(running) return; running=true; setButtons(); log('== Atualizando APKs oficiais ==');
+  es=new EventSource('/api/update-apks');
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ log('>> APKs: concluído.'); toast('APKs atualizados'); notifyDone('APKs atualizados'); stop(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); }; }
+async function sysUpdate(){ if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  log('>> Abrindo "Atualização de software" no celular...');
+  try{ const r=await fetch('/api/sysupdate'); const j=await r.json();
+    if(j.ok){ log('>> Tela de atualização aberta no celular. Toque em Verificar/Baixar/Instalar.'+(j.fallback?' (tela padrão do Android)':'')); toast('Abra no celular e toque em Instalar'); }
+    else{ log('[!] Falha ao abrir: '+(j.err||'')); }
+  }catch(e){ log('[!] Falha ao abrir a tela de atualização.'); } }
+async function reboot(){ if(running) return; if(!confirm('Reiniciar o celular agora?')) return; log('>> Reiniciando o celular...');
+  try{ await fetch('/api/reboot'); toast('Reiniciando…'); log('>> Comando enviado.'); }catch(e){ log('[!] Falha.'); } }
+function saveLog(){ const txt=[...logEl.children].map(d=>d.textContent).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='log-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.txt'; a.click(); toast('Log baixado'); }
+async function atualizarPrograma(){
+  if(running) return;
+  log('== Verificando atualizações do programa ==');
+  let j;
+  try{ j=await (await fetch('/api/update-check')).json(); }
+  catch(e){ log('[!] Falha ao verificar (servidor offline?).'); toast('Falha ao verificar'); return; }
+  if(!j.configured){ log('[!] Atualização online ainda não configurada (update.json sem endereço).'); toast('Update não configurado'); return; }
+  if(!j.ok){ log('[!] Não consegui verificar: '+(j.err||'')); toast('Falha ao verificar'); return; }
+  if(!j.total){ log('>> Você já está na versão mais recente'+(j.versaoRemota?(' ('+j.versaoRemota+')'):'')+'.'); toast('Já está atualizado ✓'); return; }
+  const lst=j.pendentes.slice(0,20).join('\n')+(j.pendentes.length>20?'\n…(+'+(j.pendentes.length-20)+')':'');
+  if(!confirm('⬆ Nova versão disponível: '+j.versaoRemota+'   (atual: '+j.versaoLocal+')\n'+(j.notas?('\n'+j.notas+'\n'):'')+'\nArquivos a atualizar ('+j.total+'):\n'+lst+'\n\nBaixar e atualizar agora?')) return;
+  running=true; setButtons(); log('== Atualizando programa para '+j.versaoRemota+' ==');
+  es=new EventSource('/api/update-run');
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ const code=e.data.split(' ')[1];
+      if(code==='0'){ toast('Programa atualizado ✓'); notifyDone('Programa atualizado — reabra o painel'); }
+      else { toast('Falha na atualização'); }
+      stop(); return; }
+    log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+function stop(){ if(es){ es.close(); es=null; } running=false; setButtons(); }
+
+// editor config
+function toggleCfg(){ const w=document.getElementById('cfgWrap'), b=document.getElementById('cfgToggle');
+  const show=w.style.display==='none'; w.style.display=show?'block':'none'; b.textContent=show?'Fechar':'Editar'; if(show) loadCfg(); }
+async function loadCfg(){ try{ const r=await fetch('/api/config'); const t=await r.text();
+    try{ document.getElementById('cfgText').value=JSON.stringify(JSON.parse(t),null,2); }catch(_){ document.getElementById('cfgText').value=t; }
+    cfgMsgSet('Carregado.','var(--ok)'); }catch(e){ cfgMsgSet('Falha ao carregar.','var(--err)'); } }
+async function saveCfg(){ const txt=document.getElementById('cfgText').value;
+  try{ JSON.parse(txt); }catch(e){ cfgMsgSet('JSON inválido: '+e.message,'var(--err)'); return; }
+  try{ const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:txt}); const j=await r.json();
+    cfgMsgSet(j.ok?'Salvo! (vale na próxima execução)':'Erro: '+(j.err||''), j.ok?'var(--ok)':'var(--err)'); if(j.ok) toast('config.json salvo'); }
+  catch(e){ cfgMsgSet('Falha ao salvar.','var(--err)'); } }
+function cfgMsgSet(t,c){ const e=document.getElementById('cfgMsg'); e.textContent=t; e.style.color=c||''; }
+
+// ---- #1 escanear apps do celular ----
+let appsCache=[];
+// classificacao de risco (usa as listas do config.json + apps de terceiros)
+let cfgLists=null, tpSet=new Set();
+async function ensureCfgLists(){
+  if(cfgLists) return;
+  try{ const c=await (await fetch('/api/config')).json();
+    const rx=a=>(a||[]).map(s=>{try{return new RegExp(s)}catch(_){return null}}).filter(Boolean);
+    cfgLists={P:rx(c.protect),B:rx(c.bloatPatterns),K:rx(c.keepThirdParty),force:new Set(c.forceRemove||[])};
+  }catch(_){ cfgLists={P:[],B:[],K:[],force:new Set()}; }
+}
+function classify(p){
+  const any=(s,L)=>L.some(r=>r.test(s));
+  if(!cfgLists) return {sym:'',txt:'',rank:1,color:''};
+  if(any(p,cfgLists.P)) return {sym:'🔴',txt:'essencial',rank:2,color:'#f87171'};
+  if(cfgLists.force.has(p)||any(p,cfgLists.B)||(tpSet.has(p)&&!any(p,cfgLists.K))) return {sym:'🟢',txt:'seguro',rank:0,color:'#4ade80'};
+  return {sym:'🟡',txt:'cuidado',rank:1,color:'#fbbf24'};
+}
+function selSafe(){ document.querySelectorAll('#appsList input').forEach(c=>{ c.checked = classify(c.value).rank===0; }); updSel(); }
+async function scanApps(){
+  if(!deviceOk){ toast('Celular não conectado/autorizado'); log('[!] Escaneamento cancelado: '+document.getElementById('devtxt').textContent+' — autorize a depuração USB no celular.'); return; }
+  log('>> Escaneando apps do celular...');
+  await ensureCfgLists();
+  try{ const t=await (await fetch('/api/apps?scope=3')).json(); tpSet=new Set(t.apps||[]); }catch(_){ tpSet=new Set(); }
+  const scope=document.getElementById('appsAll').checked?'all':'3';
+  try{ const j=await (await fetch('/api/apps?scope='+scope)).json(); appsCache=j.apps||[];
+    if(!appsCache.length){ toast('Nenhum app retornado — autorize o celular'); log('[!] 0 apps — verifique se o celular está autorizado (popup "Permitir depuração USB").'); return; }
+    document.getElementById('appsWrap').style.display='block'; renderApps(); toast(appsCache.length+' apps encontrados');
+  }catch(e){ toast('Falha ao escanear'); }
+}
+// dicionario de apps conhecidos (pacote -> nome amigavel)
+const KNOWN={
+  'com.whatsapp':'WhatsApp','com.whatsapp.w4b':'WhatsApp Business','org.telegram.messenger':'Telegram','org.telegram.messenger.web':'Telegram',
+  'com.instagram.android':'Instagram','com.facebook.katana':'Facebook','com.facebook.lite':'Facebook Lite','com.facebook.orca':'Messenger',
+  'com.facebook.appmanager':'Facebook (serviço)','com.facebook.services':'Facebook (serviço)','com.facebook.system':'Facebook (serviço)',
+  'com.alibaba.aliexpresshd':'AliExpress','com.shopee.br':'Shopee','com.amazon.mShop.android.shopping':'Amazon','com.mercadolibre':'Mercado Livre',
+  'com.netflix.mediaclient':'Netflix','com.spotify.music':'Spotify','com.zhiliaoapp.musically':'TikTok','com.ss.android.ugc.trill':'TikTok',
+  'live.shorttv.apps':'ShortMax (ShortTV)','com.linkedin.android':'LinkedIn','com.booking':'Booking.com','com.twitter.android':'X (Twitter)',
+  'com.google.android.youtube':'YouTube','com.google.android.apps.youtube.music':'YT Music','com.google.android.videos':'Google TV',
+  'com.google.android.apps.tachyon':'Meet','com.google.android.apps.subscriptions.red':'Google One','com.fitbit.FitbitMobile':'Fitbit',
+  'com.oplus.gamespace':'Game Space (Jogos)','com.heytap.browser':'Navegador HeyTap','com.heytap.music':'Música HeyTap',
+  'com.heytap.pictorial':'Pictorial (wallpaper)','com.heytap.market':'App Market','com.coloros.video':'Vídeos','com.coloros.weather2':'Tempo',
+  'com.oasisfeng.island':'Island','com.android.chrome':'Chrome','com.king.candycrushsaga':'Candy Crush'
+};
+const GAME_PREFIX=['com.fullmetalgamedev','com.katanlabs','com.katanlabs','com.block.juggle','com.gameloft','com.king.','com.supercell','com.miniclip'];
+function prettify(s){ return s.replace(/[._]/g,' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase()).trim(); }
+function labelFor(p){
+  if(KNOWN[p]) return KNOWN[p];
+  const low=p.toLowerCase();
+  if(GAME_PREFIX.some(g=>low.startsWith(g))){ const seg=p.split('.').pop(); return prettify(seg)+' 🎮'; }
+  const parts=p.split('.'); const generic=['android','app','apps','mobile','client','com','org','net','br','hd','application'];
+  let seg=parts[parts.length-1]; if(generic.includes(seg.toLowerCase())&&parts.length>2) seg=parts[parts.length-2];
+  const vendor=parts.length>1?parts[1]:''; return prettify(seg)+(vendor&&vendor!==seg.toLowerCase()?' · '+prettify(vendor):'');
+}
+function renderApps(){
+  const f=(document.getElementById('appsFilter').value||'').toLowerCase();
+  const el=document.getElementById('appsList'); el.innerHTML='';
+  const list=appsCache.filter(p=>p.toLowerCase().includes(f)||labelFor(p).toLowerCase().includes(f))
+    .sort((a,b)=> classify(a).rank-classify(b).rank || labelFor(a).localeCompare(labelFor(b)));
+  list.forEach(p=>{
+    const c=classify(p);
+    const row=document.createElement('label');
+    row.style.cssText='display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:7px;cursor:pointer';
+    row.onmouseover=()=>row.style.background='#0e141c'; row.onmouseout=()=>row.style.background='';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=p; cb.onchange=updSel; cb.style.cssText='accent-color:var(--accent);flex:0 0 auto';
+    const badge=document.createElement('span'); badge.textContent=c.sym; badge.title=c.txt; badge.style.cssText='font-size:13px;flex:0 0 auto;width:16px;text-align:center';
+    const tx=document.createElement('span'); tx.style.cssText='display:flex;flex-direction:column;min-width:0;flex:1';
+    const nm=document.createElement('b'); nm.textContent=labelFor(p); nm.style.cssText='font-size:13px;font-weight:600;color:'+(c.color||'var(--txt)');
+    const pk=document.createElement('small'); pk.textContent=p; pk.style.cssText='font-family:Consolas,monospace;font-size:11px;color:var(--muted)';
+    tx.appendChild(nm); tx.appendChild(pk);
+    row.appendChild(cb); row.appendChild(badge); row.appendChild(tx); el.appendChild(row);
+  });
+  updSel();
+}
+function updSel(){ document.getElementById('appsSel').textContent=document.querySelectorAll('#appsList input:checked').length+' selecionados'; }
+async function addApps(list){
+  const pkgs=[...document.querySelectorAll('#appsList input:checked')].map(c=>c.value);
+  if(!pkgs.length){ toast('Selecione apps primeiro'); return; }
+  try{ const j=await (await fetch('/api/config-add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({list,pkgs})})).json();
+    if(j.ok){ const nm=list==='forceRemove'?'remoção':'proteção'; toast(j.added+' adicionado(s) à '+nm); log('>> '+pkgs.length+' app(s) → '+list+' (config.json salvo)'); }
+    else toast('Erro: '+(j.err||''));
+  }catch(e){ toast('Falha ao salvar'); }
+}
+// ---- extrair APK dos apps selecionados (scan) ----
+function extractSelected(){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const pkgs=[...document.querySelectorAll('#appsList input:checked')].map(c=>c.value);
+  if(!pkgs.length){ toast('Selecione apps primeiro'); return; }
+  if(!confirm('Extrair o APK de '+pkgs.length+' app(s) para a pasta apks/?\n\n'+pkgs.map(labelFor).join(', '))) return;
+  running=true; setButtons();
+  log('== Extrair APK: '+pkgs.length+' app(s) ==');
+  let i=0;
+  const next=()=>{
+    if(i>=pkgs.length){ log('>> Extração concluída (pasta apks/).'); toast('APKs extraídos ✓'); notifyDone('Extração de APKs concluída'); stop(); return; }
+    const p=pkgs[i++]; const nm=(labelFor(p)||'').normalize('NFKD').replace(/[^\w.\- ]+/g,'').trim();
+    log('-- '+(nm||p)+' ('+p+') --');
+    es=new EventSource('/api/extract?pkg='+encodeURIComponent(p)+'&nome='+encodeURIComponent(nm));
+    es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ if(es){es.close();es=null;} next(); return; } log(e.data); };
+    es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+  };
+  next();
+}
+// ---- adicionar apps escaneados ao painel (extrai + registra no catálogo) ----
+function addToPanel(){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const pkgs=[...document.querySelectorAll('#appsList input:checked')].map(c=>c.value);
+  if(!pkgs.length){ toast('Selecione apps primeiro'); return; }
+  if(!confirm('Adicionar '+pkgs.length+' app(s) ao painel?\n\nExtrai o APK de cada um e inclui na seção "Resetar apps".\n\n'+pkgs.map(labelFor).join(', '))) return;
+  running=true; setButtons();
+  log('== Adicionar ao painel: '+pkgs.length+' app(s) ==');
+  let i=0;
+  const next=()=>{
+    if(i>=pkgs.length){ log('>> Concluído. Veja na aba "Resetar apps".'); toast('Apps adicionados ✓'); notifyDone('Apps adicionados ao painel'); stop(); resetLoaded=false; loadResetApps(); return; }
+    const p=pkgs[i++]; const nm=(labelFor(p)||p).normalize('NFKD').replace(/[^\w.\- ]+/g,'').trim()||p;
+    log('-- '+nm+' ('+p+') --');
+    es=new EventSource('/api/extract?pkg='+encodeURIComponent(p)+'&nome='+encodeURIComponent(nm));
+    es.onmessage=(e)=>{
+      if(e.data.startsWith('__DONE__')){
+        if(es){es.close();es=null;}
+        fetch('/api/catalog-add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pkg:p,name:nm,cat:'Outros'})})
+          .then(r=>r.json()).then(j=>{ log(j.ok?'  + adicionado ao painel: '+nm:'  [!] falhou ao registrar'); next(); })
+          .catch(()=>{ log('  [!] falhou ao registrar no painel'); next(); });
+        return;
+      }
+      log(e.data);
+    };
+    es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+  };
+  next();
+}
+function removeFromPanel(id,name){
+  if(!confirm('Tirar "'+name+'" do painel?\n\nRemove só do catálogo (o app no celular e o APK na pasta NÃO são apagados).')) return;
+  fetch('/api/catalog-remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})})
+    .then(r=>r.json()).then(j=>{ if(j.ok){ toast('Removido do painel'); resetLoaded=false; loadResetApps(); } else toast('Falha'); })
+    .catch(()=>toast('Falha ao remover'));
+}
+// ---- enxugar o bundle do Facebook (remove splits opcionais de IA) ----
+async function trimFacebook(){
+  if(!confirm('Enxugar o Facebook?\n\nRemove os splits opcionais de IA/câmera (pytorch/papaya) do facebook-bundle, liberando espaço. Mantém o app funcional para a maioria dos usos.\n\n(Se notar falta de algum recurso, reinstale extraindo de novo.)')) return;
+  log('== Enxugar Facebook ==');
+  try{ const j=await (await fetch('/api/trim-facebook')).json();
+    if(j.ok){ (j.files||[]).forEach(f=>log('  '+f)); log('>> '+j.removed+' arquivo(s) removido(s), '+j.freedMB+' MB liberados.'); toast('Facebook enxugado ('+j.freedMB+' MB)'); }
+    else { log('[!] Falha: '+(j.err||'')); toast('Falha ao enxugar'); }
+  }catch(e){ log('[!] Falha ao enxugar Facebook.'); }
+}
+// ---- #5 notificar ao concluir ----
+function beep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); const o=a.createOscillator(), g=a.createGain();
+  o.connect(g); g.connect(a.destination); o.type='sine'; o.frequency.value=880; g.gain.value=0.06; o.start();
+  setTimeout(()=>{o.frequency.value=1175;},120); setTimeout(()=>{o.stop();a.close();},260); }catch(_){}}
+function notifyDone(msg){ beep(); try{ if('Notification' in window && Notification.permission==='granted') new Notification('📱 Config Realme',{body:msg}); }catch(_){}}
+if('Notification' in window && Notification.permission==='default'){ try{ Notification.requestPermission(); }catch(_){} }
+
+// ---- Resetar / reinstalar apps (limpar dados/logs) ----
+const RESET_APPS = [
+  {id:'whatsapp',   cat:'Mensageiros', ic:'🟢', name:'WhatsApp',          pkgs:['com.whatsapp']},
+  {id:'wabusiness', cat:'Mensageiros', ic:'🏪', name:'WhatsApp Business', pkgs:['com.whatsapp.w4b']},
+  {id:'telegram',   cat:'Mensageiros', ic:'✈️', name:'Telegram',          pkgs:['org.telegram.messenger','org.telegram.messenger.web']},
+  {id:'island',     cat:'Perfis e clonagem', ic:'🏝️', name:'Island',      pkgs:['com.oasisfeng.island']},
+  {id:'cloneapp',   cat:'Perfis e clonagem', ic:'👯', name:'Clone App',   pkgs:['com.pengyou.cloneapp']},
+  {id:'facebook',     cat:'Meta / Facebook', ic:'📘', name:'Facebook',            pkgs:['com.facebook.katana']},
+  {id:'facebooklite', cat:'Meta / Facebook', ic:'📘', name:'Facebook Lite',       pkgs:['com.facebook.lite']},
+  {id:'metaads',      cat:'Meta / Facebook', ic:'📣', name:'Anúncios da Meta',    pkgs:['com.facebook.adsmanager']},
+  {id:'metabusiness', cat:'Meta / Facebook', ic:'💼', name:'Meta Business Suite', pkgs:['com.facebook.pages.app']},
+];
+const RESET_CATS = ['Mensageiros','Perfis e clonagem','Meta / Facebook'];
+// logos originais (SVG inline — offline, vetorial)
+const LOGOS = {
+  whatsapp: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#25D366"/><path fill="#fff" d="M16.04 6.4c-5.3 0-9.6 4.3-9.6 9.6 0 1.7.45 3.35 1.3 4.82L6.4 25.6l4.9-1.28a9.6 9.6 0 0 0 4.74 1.2h.004c5.3 0 9.6-4.3 9.6-9.6 0-2.57-1-4.98-2.82-6.8a9.55 9.55 0 0 0-6.78-2.82zm0 1.62c2.13 0 4.13.83 5.64 2.34a7.93 7.93 0 0 1 2.34 5.64c0 4.4-3.58 7.98-7.98 7.98a7.94 7.94 0 0 1-4.05-1.11l-.29-.17-2.9.76.77-2.83-.19-.3a7.92 7.92 0 0 1-1.22-4.24c.01-4.4 3.58-7.97 7.98-7.97z"/><path fill="#fff" d="M12.3 11.36c-.18-.4-.37-.41-.54-.42l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2.01 0 1.18.86 2.32.98 2.48.12.16 1.68 2.67 4.13 3.64 2.06.81 2.48.65 2.93.61.44-.04 1.43-.59 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28-.24-.12-1.43-.71-1.65-.79-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.53-1.35-.74-1.84z"/></svg>`,
+  wabusiness: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#1EA45C"/><path fill="#fff" d="M9.5 7.5h13a3.5 3.5 0 0 1 3.5 3.5v6.5a3.5 3.5 0 0 1-3.5 3.5h-5.7L11 24.8V21H9.5A3.5 3.5 0 0 1 6 17.5V11a3.5 3.5 0 0 1 3.5-3.5z"/><text x="16" y="18.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11" font-weight="800" fill="#1EA45C">B</text></svg>`,
+  telegram: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#29A9EB"/><path fill="#fff" d="M23.6 9.6 8.2 15.5c-1.05.42-1.04 1.02.06 1.31l3.95 1.23 1.52 4.78c.18.5.32.62.7.62.38 0 .55-.17.76-.42l1.9-1.85 3.95 2.92c.73.4 1.25.2 1.45-.68l2.6-12.25c.29-1.08-.4-1.57-1.43-1.13z"/><path fill="#c8e6f9" d="m12.4 17.7 9.2-5.8c.43-.26.83-.12.5.18l-7.45 6.72-.29 3.06c-.2 0-.29-.09-.38-.32z"/></svg>`,
+  island: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#1769C9"/><g fill="#fff"><path d="M8.5 22.2c2.4-1.7 5.1-2.6 7.5-2.6s5.1.9 7.5 2.6l-.7 1.3H9.2z"/><path d="M15.3 12.6h1.4l-.35 7.2h-.7z"/><path d="M16 7.2c3-.7 5.5.7 6.4 2.6-1.5-.9-3.1-1.2-4.5-.7 1.9.2 3.5 1.1 4.5 2.7-1.8-.9-3.5-1.1-4.9-.5 1.4.4 2.5 1.3 3.1 2.7-1.7-1.1-3.4-1.6-4.9-1.5z"/><path d="M16 7.2c-3-.7-5.5.7-6.4 2.6 1.5-.9 3.1-1.2 4.5-.7-1.9.2-3.5 1.1-4.5 2.7 1.8-.9 3.5-1.1 4.9-.5-1.4.4-2.5 1.3-3.1 2.7 1.7-1.1 3.4-1.6 4.9-1.5z"/></g></svg>`,
+  cloneapp: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="17" height="17" rx="5" fill="#6C63E0"/><rect x="11" y="11" width="17" height="17" rx="5" fill="#9C95FF"/><path fill="#fff" d="M20.2 18.4h-2.6v2.6a1 1 0 0 1-2 0v-2.6h-2.6a1 1 0 0 1 0-2h2.6v-2.6a1 1 0 0 1 2 0v2.6h2.6a1 1 0 0 1 0 2z"/></svg>`,
+  facebook: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#1877F2"/><path fill="#fff" d="M18.9 28V18.5h3.2l.5-3.7h-3.7v-2.4c0-1.07.3-1.8 1.85-1.8H22.7V7.3c-.34-.05-1.5-.15-2.85-.15-2.82 0-4.75 1.72-4.75 4.88v2.72H11.9v3.7h3.2V28z"/></svg>`,
+  facebooklite: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#0A84FF"/><path fill="#FFD21E" d="M10 19.5l4-6-.7 3.6h2.2l-4 6 .7-3.6z"/><path fill="#fff" d="M19.4 27.4V18.7h3l.5-3.5h-3.5v-2.2c0-1 .3-1.7 1.75-1.7H23V7.7c-.32-.05-1.42-.14-2.68-.14-2.65 0-4.42 1.62-4.42 4.6v2.54h-2.5v3.5h2.5v8.7z"/></svg>`,
+  metaads: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#0866FF"/><path fill="#fff" d="M8 14.2v3.6c0 .5.4.9.9.9h1.4l.95 4.3c.1.4.45.7.86.7h1.6c.6 0 1-.55.88-1.13l-.85-3.87h.7l6 3.5c.66.38 1.5-.1 1.5-.87V10.37c0-.77-.84-1.25-1.5-.87l-6 3.5H8.9c-.5 0-.9.4-.9.9z"/></svg>`,
+  metabusiness: `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#0866FF"/><path fill="#fff" d="M11.6 11.5c-2.7 0-4.6 2.2-4.6 4.8s1.9 4.7 4.5 4.7c1.9 0 3.3-1.1 4.5-2.8 1.2 1.7 2.6 2.8 4.5 2.8 2.6 0 4.5-2.1 4.5-4.7s-1.9-4.8-4.6-4.8c-1.9 0-3.3 1.2-4.4 2.9-1.1-1.7-2.5-2.9-4.4-2.9zm0 2.4c1 0 1.8.9 2.7 2.4-.9 1.5-1.7 2.4-2.7 2.4-1.3 0-2.2-1-2.2-2.4s.9-2.4 2.2-2.4zm8.8 0c1.3 0 2.2 1 2.2 2.4s-.9 2.4-2.2 2.4c-1 0-1.8-.9-2.7-2.4.9-1.5 1.7-2.4 2.7-2.4z"/></svg>`,
+};
+function letterTile(name){ const ch=((name||'?').trim()[0]||'?').toUpperCase();
+  return `<svg viewBox="0 0 32 32" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="#3a352e"/><text x="16" y="21" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" fill="#d97757">${ch}</text></svg>`; }
+function iconFor(a){ if(a && LOGOS[a.id]) return LOGOS[a.id]; if(a && a.custom) return letterTile(a.name); return a ? a.ic : '📦'; }
+let resetInstalled=new Set(), cloneProfiles=[], resetLoaded=false, resetVersions={installed:{},apks:{}}, CUSTOM_APPS=[];
+function allApps(){ return RESET_APPS.concat(CUSTOM_APPS); }
+function allCats(){ const c=[...RESET_CATS]; allApps().forEach(a=>{ if(a.cat && !c.includes(a.cat)) c.push(a.cat); }); return c; }
+function appForPkg(p){ return allApps().find(a=>a.pkgs.includes(p)); }
+function apkVerByPkg(){ const m={}; Object.values(resetVersions.apks||{}).forEach(i=>{ if(i&&i.pkg) m[i.pkg]=i; }); return m; }
+function appStatus(a,on){
+  if(!on) return '<span style="color:var(--faint)">○ não instalado</span>';
+  const ip=a.pkgs.find(p=>resetInstalled.has(p));
+  const iv=(resetVersions.installed||{})[ip];
+  let s='<span style="color:var(--ok)">● instalado</span>';
+  if(iv&&iv.versionName) s+=' <span style="color:var(--muted)">v'+iv.versionName+'</span>';
+  const av=apkVerByPkg()[ip];
+  if(av&&av.versionCode&&iv&&iv.versionCode&&+av.versionCode>+iv.versionCode)
+    s+=' <span style="color:var(--warn)" title="o APK na pasta é mais novo">↑ APK v'+av.versionName+'</span>';
+  return s;
+}
+async function loadResetApps(){
+  const el=document.getElementById('resetList');
+  if(!deviceOk){ el.innerHTML='<div class="hint">Conecte o celular para listar os apps.</div>'; resetLoaded=false; return; }
+  try{ const j=await (await fetch('/api/apps?scope=all')).json(); resetInstalled=new Set(j.apps||[]); }
+  catch(_){ resetInstalled=new Set(); }
+  try{ const c=await (await fetch('/api/clones')).json(); cloneProfiles=c.profiles||[]; }
+  catch(_){ cloneProfiles=[]; }
+  try{ const cat=await (await fetch('/api/catalog')).json(); CUSTOM_APPS=(cat.custom||[]).map(a=>({...a, custom:true})); }
+  catch(_){ CUSTOM_APPS=[]; }
+  try{ const allPkgs=[...new Set(allApps().flatMap(a=>a.pkgs))].join(',');
+    resetVersions=await (await fetch('/api/versions?pkgs='+encodeURIComponent(allPkgs))).json(); }
+  catch(_){ resetVersions={installed:{},apks:{}}; }
+  resetLoaded=true; renderResetApps();
+}
+function resetRow(a,name,statusHtml,btnsHtml,markId){
+  const row=document.createElement('div'); row.className='step'; row.style.cursor='default';
+  const isLogo=!!(a && LOGOS[a.id]);
+  const icStyle=isLogo?' style="background:transparent;border:0;padding:0;overflow:hidden"':'';
+  const chk = markId ? `<input type="checkbox" class="mark" value="${markId}" title="marcar para instalar" onchange="updMarkCount()" style="width:18px;height:18px;accent-color:var(--accent);flex:0 0 auto;cursor:pointer">` : '';
+  row.innerHTML=`${chk}<span class="ic"${icStyle}>${iconFor(a)}</span>
+    <span class="tx"><b>${name}</b><small>${statusHtml}</small></span>
+    <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btnsHtml}</span>`;
+  return row;
+}
+function catHeader(txt){ const h=document.createElement('div'); h.className='cat-h'; h.textContent=txt; return h; }
+function renderResetApps(){
+  const el=document.getElementById('resetList'); el.innerHTML='';
+  // ---- perfil principal, agrupado por categoria ----
+  allCats().forEach(cat=>{
+    const apps=allApps().filter(a=>a.cat===cat);
+    if(!apps.length) return;
+    el.appendChild(catHeader(cat));
+    apps.forEach(a=>{
+      const on=a.pkgs.some(p=>resetInstalled.has(p));
+      const esc=a.name.replace(/'/g,"\\'");
+      const b=(act,txt)=>`<button class="btn-ghost btn-sm" onclick="resetAction('${act}','${a.id}','${esc}','0')">${txt}</button>`;
+      let btns = on ? b('clear','🧽 Limpar dados')+b('reinstall','♻ Reinstalar')+b('uninstall','🗑 Desinstalar')
+                    : b('install','⬇ Instalar');
+      if(a.custom) btns += `<button class="btn-ghost btn-sm" title="tirar do painel" onclick="removeFromPanel('${a.id}','${esc}')">✖</button>`;
+      el.appendChild(resetRow(a,a.name,appStatus(a,on),btns,a.id));
+    });
+  });
+  updMarkCount();
+  // ---- clones (perfis de trabalho) ----
+  cloneProfiles.forEach(pf=>{
+    el.appendChild(catHeader('👯 Clones · '+pf.name+' (user '+pf.user+')'));
+    pf.pkgs.forEach(p=>{
+      const a=appForPkg(p); const name=(a?a.name:p);
+      const esc=name.replace(/'/g,"\\'"); const id=a?a.id:'';
+      const b=(act,txt)=>`<button class="btn-ghost btn-sm" onclick="resetAction('${act}','${id}','${esc}','${pf.user}')">${txt}</button>`;
+      const status=`<span style="color:var(--ok)">● clonado</span> <span style="color:var(--faint)">· ${p}</span>`;
+      el.appendChild(resetRow(a,name,status,b('clear','🧽 Limpar dados')+b('reinstall','♻ Reinstalar')+b('uninstall','🗑 Remover clone')));
+    });
+  });
+}
+function resetAction(action,id,name,user){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const clone = !!user && user!=='0';
+  const onde = clone ? ' do clone (perfil de trabalho)' : ' do perfil principal';
+  const msgs={
+    uninstall: clone ? `Remover o clone de ${name} do perfil de trabalho?\n\nApaga o clone e seus dados (o app do perfil principal não é afetado).`
+                     : `Desinstalar ${name}?\n\nRemove o app e seus dados do perfil principal (o clone do Island não é afetado).`,
+    reinstall:`Reinstalar ${name}${onde}?\n\nRemove e instala de novo — zera TODOS os dados/logs.`,
+    clear:`Limpar os dados de ${name}${onde}?\n\nApaga conversas/logs/cache (fica como recém-instalado), sem remover o app.`,
+    install:`Instalar ${name} a partir da pasta apks?`
+  };
+  if(!confirm(msgs[action]||('Confirmar '+action+'?'))) return;
+  const dry=document.getElementById('dry').checked?'1':'0';
+  const tag = clone ? ' [clone u'+user+']' : '';
+  running=true; setButtons();
+  log('== '+name+tag+': '+action+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  es=new EventSource(`/api/app-action?action=${action}&app=${id}&user=${user||'0'}&dry=${dry}`);
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ log('>> Concluído ('+name+tag+').'); toast(name+': concluído ✓'); notifyDone(name+': '+action+' concluído'); loadResetApps(); stop(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+// ---- marcar apps e instalar os marcados (em lote, perfil principal) ----
+function nameFor(id){ const a=allApps().find(x=>x.id===id); return a?a.name:id; }
+function updMarkCount(){ const e=document.getElementById('markCount'); if(e) e.textContent='('+document.querySelectorAll('#resetList input.mark:checked').length+')'; }
+function markAll(v){ document.querySelectorAll('#resetList input.mark').forEach(c=>c.checked=v); updMarkCount(); }
+function installMarked(){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const ids=[...document.querySelectorAll('#resetList input.mark:checked')].map(c=>c.value);
+  if(!ids.length){ toast('Marque ao menos um app'); return; }
+  const dry=document.getElementById('dry').checked?'1':'0';
+  if(!confirm('Instalar '+ids.length+' app(s) marcado(s)'+(dry==='1'?' (simulação)':'')+'?\n\n'+ids.map(nameFor).join(', '))) return;
+  running=true; setButtons();
+  log('== Instalar marcados: '+ids.join(', ')+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  let i=0;
+  const next=()=>{
+    if(i>=ids.length){ log('>> Instalação dos marcados concluída.'); toast('Marcados: concluído ✓'); notifyDone('Instalação dos marcados concluída'); loadResetApps(); stop(); return; }
+    const id=ids[i++], nm=nameFor(id);
+    log('-- '+nm+' --');
+    es=new EventSource(`/api/app-action?action=install&app=${id}&user=0&dry=${dry}`);
+    es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ if(es){es.close();es=null;} next(); return; } log(e.data); };
+    es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+  };
+  next();
+}
+
+// ---- diagnóstico do aparelho ----
+function diagTile(label,val,sub){
+  return `<div style="background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;min-width:130px;flex:1">
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">${label}</div>
+    <div style="font-size:17px;font-weight:700;margin-top:3px">${val||'—'}</div>
+    ${sub?`<div style="font-size:11.5px;color:var(--muted);margin-top:1px">${sub}</div>`:''}</div>`;
+}
+function fmtUptime(s){ const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60); return (d?d+'d ':'')+(h?h+'h ':'')+m+'m'; }
+function renderDiag(d){
+  const w=document.getElementById('diagWrap');
+  if(!d||d.err){ w.innerHTML='<div class="hint">ADB indisponível ou celular desconectado.</div>'; return; }
+  const b=d.battery||{}, r=d.ram||{}, st=d.storage||{};
+  w.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap">
+    ${diagTile('🔋 Bateria',(b.level||'—')+'%',(b.health?'saúde: '+b.health:'')+(b.status?' · '+b.status:''))}
+    ${diagTile('🌡 Temperatura',b.tempC?b.tempC+' °C':'—',b.tech||'')}
+    ${diagTile('💾 Armazenamento',st.freeGB?st.freeGB+' GB livres':'—',st.totalGB?'de '+st.totalGB+' GB · '+st.usedGB+' usados':'')}
+    ${diagTile('🧠 RAM',r.totalGB?r.totalGB+' GB':'—',r.availGB?r.availGB+' GB livre':'')}
+    ${diagTile('📱 Aparelho',d.model||'—',d.manufacturer||'')}
+    ${diagTile('🤖 Android',d.android?'Android '+d.android:'—',(d.sdk?'API '+d.sdk:'')+(d.abi?' · '+d.abi:''))}
+    ${diagTile('🧩 ROM',d.rom||'—','')}
+    ${diagTile('🆔 Serial',d.serial||'—','')}
+    ${diagTile('⏱ Ligado há',d.uptimeSec?fmtUptime(d.uptimeSec):'—','')}
+  </div>`;
+}
+async function loadDiag(){
+  const w=document.getElementById('diagWrap');
+  if(!deviceOk){ w.innerHTML='<div class="hint">Conecte o celular primeiro.</div>'; return; }
+  w.innerHTML='<div class="hint">Lendo diagnóstico…</div>';
+  try{ renderDiag(await (await fetch('/api/diag')).json()); }catch(_){ w.innerHTML='<div class="hint">Falha ao ler diagnóstico.</div>'; }
+}
+// ---- permissões em massa (apps do scan) ----
+function permsBulk(action){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const pkgs=[...document.querySelectorAll('#appsList input:checked')].map(c=>c.value);
+  if(!pkgs.length){ toast('Selecione apps primeiro'); return; }
+  const verbo=action==='grant'?'Conceder':'Revogar';
+  if(!confirm(verbo+' as permissões comuns de '+pkgs.length+' app(s)?\n\n'+pkgs.map(labelFor).join(', '))) return;
+  running=true; setButtons();
+  log('== '+verbo+' permissões: '+pkgs.length+' app(s) ==');
+  let i=0;
+  const next=()=>{
+    if(i>=pkgs.length){ log('>> Permissões: concluído.'); toast(verbo+': concluído ✓'); notifyDone('Permissões: '+verbo+' concluído'); stop(); return; }
+    const p=pkgs[i++]; log('-- '+labelFor(p)+' ('+p+') --');
+    es=new EventSource('/api/perms-bulk?action='+action+'&pkg='+encodeURIComponent(p));
+    es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ if(es){es.close();es=null;} next(); return; } log(e.data); };
+    es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+  };
+  next();
+}
+// ---- Clone App: criar/deletar clones internos ----
+function openCloneApp(){
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  fetch('/api/clone-open').then(()=>{ toast('Abrindo Clone App no celular'); log('>> Clone App aberto no celular.'); }).catch(()=>toast('Falha ao abrir'));
+}
+function clonesAction(action){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const app=document.getElementById('cloneAppSel').value;
+  const names=document.getElementById('cloneNames').value.trim();
+  if(!names){ toast('Informe os nomes (ex: 2,3,4)'); return; }
+  const dry=document.getElementById('dry').checked?'1':'0';
+  const verbo=action==='create'?'Criar':'Deletar';
+  const msg=action==='create'
+    ? `Criar clones de ${app} nomeados: ${names}?\n\nVou dirigir a tela do Clone App — não mexa no celular durante o processo. Cada clone fica vazio (login manual depois).`
+    : `Deletar os clones nomeados: ${names}?\n\nRemove os clones e seus dados no Clone App (não dá pra recuperar).`;
+  if(!confirm(msg)) return;
+  running=true; setButtons();
+  log('== Clone App: '+verbo.toLowerCase()+' ['+names+']'+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  const q='app='+encodeURIComponent(app)+'&names='+encodeURIComponent(names)+'&dry='+dry;
+  es=new EventSource('/api/clone-'+action+'?'+q);
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ log('>> Clone App: concluído.'); toast(verbo+' clones: concluído ✓'); notifyDone('Clone App: '+verbo.toLowerCase()+' concluído'); stop(); loadClones(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+async function loadClones(){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  const el=document.getElementById('cloneList'); el.innerHTML='<div class="hint" style="margin-top:10px">Lendo clones… (abre o Clone App no celular)</div>';
+  try{ const j=await (await fetch('/api/clone-list')).json(); renderClones(j.clones||[]); }
+  catch(_){ el.innerHTML='<div class="hint" style="margin-top:10px">Falha ao listar.</div>'; }
+}
+function renderClones(clones){
+  const el=document.getElementById('cloneList');
+  if(!clones.length){ el.innerHTML='<div class="hint" style="margin-top:10px">Nenhum clone encontrado.</div>'; return; }
+  el.innerHTML='<div class="hint" style="margin:10px 0 6px">'+clones.length+' clone(s) — ✎ renomeia · ✖ deleta</div>';
+  const wrap=document.createElement('div'); wrap.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+  clones.forEach(n=>{
+    const esc=String(n).replace(/'/g,"\\'");
+    const chip=document.createElement('span');
+    chip.style.cssText='display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 13px;font-size:13px';
+    chip.innerHTML=`<b>${n}</b>`+
+      `<button class="btn-ghost btn-sm" style="padding:3px 8px" title="renomear" onclick="cloneRename('${esc}')">✎</button>`+
+      `<button class="btn-ghost btn-sm" style="padding:3px 8px" title="deletar" onclick="cloneDelete('${esc}')">✖</button>`;
+    wrap.appendChild(chip);
+  });
+  el.appendChild(wrap);
+}
+function cloneDelete(name){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!confirm('Deletar o clone "'+name+'"?\n\nRemove o clone e seus dados no Clone App (não dá pra recuperar).')) return;
+  const dry=document.getElementById('dry').checked?'1':'0';
+  running=true; setButtons(); log('== Clone App: deletar ['+name+']'+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  es=new EventSource('/api/clone-delete?names='+encodeURIComponent(name)+'&dry='+dry);
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ toast('Clone removido ✓'); notifyDone('Clone removido'); stop(); loadClones(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+function cloneRename(name){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  const nn=prompt('Novo nome para o clone "'+name+'":', name); if(nn===null) return;
+  const novo=nn.trim(); if(!novo){ toast('Nome vazio'); return; }
+  const dry=document.getElementById('dry').checked?'1':'0';
+  running=true; setButtons(); log('== Clone App: renomear ['+name+' → '+novo+']'+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  es=new EventSource('/api/clone-rename?old='+encodeURIComponent(name)+'&new='+encodeURIComponent(novo)+'&dry='+dry);
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ toast('Clone renomeado ✓'); notifyDone('Clone renomeado'); stop(); loadClones(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+// ---- abas ----
+function showTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>{ p.hidden = (p.id!=='tab-'+name); });
+  document.querySelectorAll('.tabs .tab').forEach(t=>{ t.classList.toggle('active', t.dataset.tab===name); });
+  if(name==='resetar') loadResetApps();
+  if(name==='avancado') loadDiag();
+}
+
+checkDevice(); setInterval(checkDevice,4000); loadResetApps();
+</script>
+</body>
+</html>

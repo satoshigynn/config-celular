@@ -1,0 +1,43 @@
+{
+    "versao":  "1.0",
+    "data":  "2026-06-30",
+    "notas":  "Versao inicial",
+    "arquivos":  [
+                     {
+                         "caminho":  "setup-celular.ps1",
+                         "sha256":  "7146967f1670d0e0655e8a6480cfb0170feb5b1d40eda846fbc3d6c7feb2bd90"
+                     },
+                     {
+                         "caminho":  "atualizar-apks.ps1",
+                         "sha256":  "5071041c782a90036779e371554aefc14f91cbb58fd341c54b2e66a4df921033"
+                     },
+                     {
+                         "caminho":  "restaurar.ps1",
+                         "sha256":  "9fadadb5016eba8c73b7dfac9617a9176f4dc1c8335c52c1c08cb3e388965313"
+                     },
+                     {
+                         "caminho":  "gerenciar-app.ps1",
+                         "sha256":  "b4f383817d359e37e5eb49388cba91fb798f19e7b68d00043147ffa8076bdf0e"
+                     },
+                     {
+                         "caminho":  "extrair-apk.ps1",
+                         "sha256":  "4c0ffa128b42b1ecd493f228fe6bfe5199c6b56fdea9dcda728827a511a96544"
+                     },
+                     {
+                         "caminho":  "clones-cloneapp.ps1",
+                         "sha256":  "95d88d762778d81b217f066c47111a36a8e7fef57dfe7f240195d7b774c2b1e9"
+                     },
+                     {
+                         "caminho":  "painel/server.cjs",
+                         "sha256":  "b8b5abef3c55987186e819a6f8af20630b4f97b237ffb00c621ed132400575bb"
+                     },
+                     {
+                         "caminho":  "painel/index.html",
+                         "sha256":  "f50e5b018c0641d838d714e9055a27bd2aa1429d12273c4b5e6d6406664a9b26"
+                     },
+                     {
+                         "caminho":  "painel/iniciar-painel.bat",
+                         "sha256":  "1a893e8257603c40387ae041f8693713ebcd040cdecd5227aaa774a780c74d6d"
+                     }
+                 ]
+}
