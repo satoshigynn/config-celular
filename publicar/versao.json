@@ -1,7 +1,7 @@
 {
-    "versao":  "1.1",
+    "versao":  "2.0",
     "data":  "2026-06-30",
-    "notas":  "Mostra a versao do programa no cabecalho do painel",
+    "notas":  "Espelho da tela ao vivo, diagnostico visual com medidores e modal de novidades",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -29,11 +29,11 @@
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "42b4859192630afd2803561d9299d3bef5824bd853fa04315a4b14d40985d152"
+                         "sha256":  "eea8c7069bffc2df509d579d7bfc3b4579b23945bf8dd652bf87a2d27244cb56"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "d1ecacec6d18c4dd260b76bca041edd6caf08193425afb3aad9365ccd8cf4741"
+                         "sha256":  "e6a072bc9f0083d9bbdf2a3ec760d447757cc0de4dc57b3af1be36cb4ded8924"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

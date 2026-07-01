@@ -491,6 +491,25 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ---- espelho da tela: captura um PNG da tela do celular (image/png) ----
+  if (u.pathname === '/api/screen') {
+    const p = spawn(ADB, ['exec-out', 'screencap', '-p']);
+    const chunks = []; let err = '';
+    p.stdout.on('data', d => chunks.push(d));
+    p.stderr.on('data', d => err += d.toString('utf8'));
+    p.on('close', () => {
+      const buf = Buffer.concat(chunks);
+      // valida a assinatura PNG (89 50 4E 47) antes de servir como imagem
+      if (buf.length > 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
+        cors(res); res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' }); res.end(buf);
+      } else {
+        send(res, 200, 'application/json', JSON.stringify({ ok: false, err: (err.trim() || 'Sem imagem — o celular esta conectado e desbloqueado?') }));
+      }
+    });
+    p.on('error', () => send(res, 200, 'application/json', JSON.stringify({ ok: false, err: 'ADB nao encontrado' })));
+    return;
+  }
+
   // ---- permissoes em massa: conceder/revogar as comuns de um app (stream SSE) ----
   if (u.pathname === '/api/perms-bulk') {
     const pkg = u.searchParams.get('pkg') || '';
