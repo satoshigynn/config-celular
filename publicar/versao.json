@@ -1,7 +1,7 @@
 {
-    "versao":  "3.3",
-    "data":  "2026-06-30",
-    "notas":  "Tela ao vivo fixada ao lado do log (visivel em todas as abas)",
+    "versao":  "3.4",
+    "data":  "2026-07-01",
+    "notas":  "Acoes em lote na aba Resetar apps: Instalar, Reinstalar e Limpar marcados",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "b630bbbf61298120c0022308c369fe97cf2df0b90771ea26775ad4848cd14acf"
+                         "sha256":  "16df7456e116ddae3b351feba155f77524997c78a217b08f563350e6621b9cb5"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

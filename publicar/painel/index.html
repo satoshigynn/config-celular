@@ -251,13 +251,15 @@
       <button class="btn-ghost btn-sm" onclick="loadResetApps()">Atualizar</button>
     </div>
     <div class="hint" style="margin-bottom:12px">
-      Marque os apps e clique em <b>Instalar marcados</b>. Ou use por app: <b>Reinstalar</b> (zera tudo) e <b>Limpar dados</b> (apaga conversas/logs/cache sem remover).
+      Marque os apps e use em lote: <b>Instalar</b>, <b>Reinstalar</b> (zera tudo) ou <b>Limpar</b> (apaga conversas/logs/cache sem remover). Também dá pra usar por app.
       Mexe só no perfil principal — os clones (perfil de trabalho) não são afetados. O log aparece em “Log ao vivo”.
     </div>
     <div class="toolbar" style="margin-bottom:10px">
       <button class="btn-ghost btn-sm" onclick="markAll(true)">Marcar todos</button>
       <button class="btn-ghost btn-sm" onclick="markAll(false)">Nenhum</button>
-      <button class="btn-primary btn-sm" onclick="installMarked()">⬇ Instalar marcados <span id="markCount">(0)</span></button>
+      <button class="btn-primary btn-sm" onclick="batchAction('install')">⬇ Instalar marcados <span id="markCount">(0)</span></button>
+      <button class="btn-ghost btn-sm" onclick="batchAction('reinstall')">♻ Reinstalar marcados</button>
+      <button class="btn-ghost btn-sm" onclick="batchAction('clear')">🧽 Limpar marcados</button>
     </div>
     <div class="steps" id="resetList"><div class="hint">Conecte o celular para listar os apps.</div></div>
   </div>
@@ -846,26 +848,30 @@ function resetAction(action,id,name,user){
 function nameFor(id){ const a=allApps().find(x=>x.id===id); return a?a.name:id; }
 function updMarkCount(){ const e=document.getElementById('markCount'); if(e) e.textContent='('+document.querySelectorAll('#resetList input.mark:checked').length+')'; }
 function markAll(v){ document.querySelectorAll('#resetList input.mark').forEach(c=>c.checked=v); updMarkCount(); }
-function installMarked(){
+// acao em lote sobre os apps marcados: install | reinstall | clear
+function batchAction(action){
   if(running){ toast('Aguarde a tarefa atual terminar'); return; }
   if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
   const ids=[...document.querySelectorAll('#resetList input.mark:checked')].map(c=>c.value);
   if(!ids.length){ toast('Marque ao menos um app'); return; }
   const dry=document.getElementById('dry').checked?'1':'0';
-  if(!confirm('Instalar '+ids.length+' app(s) marcado(s)'+(dry==='1'?' (simulação)':'')+'?\n\n'+ids.map(nameFor).join(', '))) return;
+  const label={install:'Instalar',reinstall:'Reinstalar',clear:'Limpar dados de'}[action]||action;
+  const aviso={install:'',reinstall:' — ZERA o app (apaga tudo e reinstala)',clear:' — apaga conversas/logs/cache, sem remover'}[action]||'';
+  if(!confirm(label+' '+ids.length+' app(s) marcado(s)'+aviso+(dry==='1'?' (simulação)':'')+'?\n\n'+ids.map(nameFor).join(', '))) return;
   running=true; setButtons();
-  log('== Instalar marcados: '+ids.join(', ')+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
+  log('== '+label+' marcados: '+ids.join(', ')+(dry==='1'?' (SIMULAÇÃO)':'')+' ==');
   let i=0;
   const next=()=>{
-    if(i>=ids.length){ log('>> Instalação dos marcados concluída.'); toast('Marcados: concluído ✓'); notifyDone('Instalação dos marcados concluída'); loadResetApps(); stop(); return; }
+    if(i>=ids.length){ log('>> '+label+' marcados: concluído.'); toast('Marcados: concluído ✓'); notifyDone(label+' marcados: concluído'); loadResetApps(); stop(); return; }
     const id=ids[i++], nm=nameFor(id);
     log('-- '+nm+' --');
-    es=new EventSource(`/api/app-action?action=install&app=${id}&user=0&dry=${dry}`);
+    es=new EventSource(`/api/app-action?action=${action}&app=${id}&user=0&dry=${dry}`);
     es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ if(es){es.close();es=null;} next(); return; } log(e.data); };
     es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
   };
   next();
 }
+function installMarked(){ batchAction('install'); }   // compatibilidade
 
 // ---- diagnóstico do aparelho ----
 function diagTile(label,val,sub){
