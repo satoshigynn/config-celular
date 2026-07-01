@@ -134,6 +134,10 @@
 <canvas id="particleCanvas"></canvas>
 <div class="wrap">
 
+  <div id="restartBar" style="display:none;position:sticky;top:0;z-index:90;background:#7c2d12;color:#fed7aa;border:1px solid #9a3412;border-radius:12px;padding:11px 16px;margin-bottom:14px;text-align:center;font-size:13.5px;font-weight:600">
+    🔄 Atualização baixada — <b>feche a janela preta do painel e abra de novo</b> para aplicar (um F5 não basta).
+  </div>
+
   <header>
     <div class="logo">📱</div>
     <div>
@@ -145,7 +149,7 @@
       <button class="btn-ghost btn-sm" onclick="showNews()">✨ Novidades</button>
     </span>
   </header>
-  <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao){e.textContent='v'+j.versao;if(localStorage.getItem('news_seen')!==j.versao){localStorage.setItem('news_seen',j.versao);setTimeout(showNews,700);}}}).catch(function(){});</script>
+  <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao){e.textContent='v'+j.versao;if(localStorage.getItem('news_seen')!==j.versao){localStorage.setItem('news_seen',j.versao);setTimeout(showNews,700);}}if(j&&j.stale){var rb=document.getElementById('restartBar');if(rb)rb.style.display='block';}}).catch(function(){});</script>
 
   <!-- modal Novidades -->
   <div id="newsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">

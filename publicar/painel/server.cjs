@@ -25,6 +25,10 @@ const CONFIG = path.join(BASE, 'config.json');
 const CATALOG = path.join(BASE, 'apps-catalog.json');
 const UPDATE_CFG = path.join(BASE, 'update.json');       // { baseUrl } de onde baixar updates
 const VERSAO_LOCAL = path.join(BASE, 'versao-local.txt'); // versao instalada (texto simples)
+// hash do proprio server.cjs quando o servidor subiu. Se o arquivo no disco mudar
+// (ex.: uma atualizacao foi baixada), da pra avisar que o painel precisa reiniciar.
+let BOOT_SELF_HASH = '';
+try { BOOT_SELF_HASH = crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex'); } catch (_) {}
 
 // apps personalizados (apps-catalog.json) - editaveis pelo painel
 function readCatalogObj() { try { return JSON.parse(fs.readFileSync(CATALOG, 'utf8')); } catch (_) { return { custom: [] }; } }
@@ -599,9 +603,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // ---- versao do programa (mostrada no cabecalho do painel) ----
+  // ---- versao do programa + se o server em execucao esta desatualizado (precisa reiniciar) ----
   if (u.pathname === '/api/version') {
-    send(res, 200, 'application/json', JSON.stringify({ versao: versaoLocal() }));
+    let stale = false;
+    try { stale = !!BOOT_SELF_HASH && crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex') !== BOOT_SELF_HASH; } catch (_) {}
+    send(res, 200, 'application/json', JSON.stringify({ versao: versaoLocal(), stale: stale }));
     return;
   }
 

@@ -1,7 +1,7 @@
 {
-    "versao":  "3.0",
+    "versao":  "3.1",
     "data":  "2026-06-30",
-    "notas":  "Aviso automatico de nova versao (popup + bolinha) e botao Atualizar no topo",
+    "notas":  "Aviso automatico para reiniciar o painel quando o servidor esta desatualizado",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -29,11 +29,11 @@
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "eea8c7069bffc2df509d579d7bfc3b4579b23945bf8dd652bf87a2d27244cb56"
+                         "sha256":  "94ceb8f97b15cdbaa9253b57032ede05938d8bbc528c39c4c839eebbade3158c"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "7e857a9b47b4f6110a1a74eafd09ddefc9fd9d87c49c0e4020a302698eb65bec"
+                         "sha256":  "6a38a2ab3a949c948c928a399ba6be843e8eee8c7a812649104a66026a94c92b"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
