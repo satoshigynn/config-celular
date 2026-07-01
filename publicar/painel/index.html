@@ -196,7 +196,7 @@
   <!-- abas -->
   <div class="tabs">
     <button class="tab active" data-tab="configurar" onclick="showTab('configurar')">⚙ Configurar</button>
-    <button class="tab" data-tab="resetar" onclick="showTab('resetar')">♻ Resetar apps</button>
+    <button class="tab" data-tab="resetar" onclick="showTab('resetar')">📱 Gerenciar apps</button>
     <button class="tab" data-tab="avancado" onclick="showTab('avancado')">🛠 Avançado</button>
     <label class="chk" style="margin-left:auto"><input type="checkbox" id="dry"> Simular (dry-run)</label>
   </div>
@@ -247,7 +247,7 @@
       <div class="tab-panel" id="tab-resetar" hidden>
       <div class="card">
     <div class="card-h">
-      <span class="t">♻ Resetar apps · limpar dados/logs</span>
+      <span class="t">📱 Gerenciar apps · instalar / resetar / limpar</span>
       <button class="btn-ghost btn-sm" onclick="loadResetApps()">Atualizar</button>
     </div>
     <div class="hint" style="margin-bottom:12px">
@@ -679,12 +679,12 @@ function addToPanel(){
   if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
   const pkgs=[...document.querySelectorAll('#appsList input:checked')].map(c=>c.value);
   if(!pkgs.length){ toast('Selecione apps primeiro'); return; }
-  if(!confirm('Adicionar '+pkgs.length+' app(s) ao painel?\n\nExtrai o APK de cada um e inclui na seção "Resetar apps".\n\n'+pkgs.map(labelFor).join(', '))) return;
+  if(!confirm('Adicionar '+pkgs.length+' app(s) ao painel?\n\nExtrai o APK de cada um e inclui na aba "Gerenciar apps".\n\n'+pkgs.map(labelFor).join(', '))) return;
   running=true; setButtons();
   log('== Adicionar ao painel: '+pkgs.length+' app(s) ==');
   let i=0;
   const next=()=>{
-    if(i>=pkgs.length){ log('>> Concluído. Veja na aba "Resetar apps".'); toast('Apps adicionados ✓'); notifyDone('Apps adicionados ao painel'); stop(); resetLoaded=false; loadResetApps(); return; }
+    if(i>=pkgs.length){ log('>> Concluído. Veja na aba "Gerenciar apps".'); toast('Apps adicionados ✓'); notifyDone('Apps adicionados ao painel'); stop(); resetLoaded=false; loadResetApps(); return; }
     const p=pkgs[i++]; const nm=(labelFor(p)||p).normalize('NFKD').replace(/[^\w.\- ]+/g,'').trim()||p;
     log('-- '+nm+' ('+p+') --');
     es=new EventSource('/api/extract?pkg='+encodeURIComponent(p)+'&nome='+encodeURIComponent(nm));

@@ -1,7 +1,7 @@
 {
-    "versao":  "3.4",
+    "versao":  "3.5",
     "data":  "2026-07-01",
-    "notas":  "Acoes em lote na aba Resetar apps: Instalar, Reinstalar e Limpar marcados",
+    "notas":  "Aba \u0027Resetar apps\u0027 renomeada para \u0027Gerenciar apps\u0027",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "16df7456e116ddae3b351feba155f77524997c78a217b08f563350e6621b9cb5"
+                         "sha256":  "906b613c920e6325111a299a42d70bf98ca8e0fa3517e7577389a010bb2632f2"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
