@@ -1,7 +1,7 @@
 {
-    "versao":  "2.1",
+    "versao":  "3.0",
     "data":  "2026-06-30",
-    "notas":  "Botao Atualizar no topo e aviso automatico de nova versao",
+    "notas":  "Aviso automatico de nova versao (popup + bolinha) e botao Atualizar no topo",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "47401200cbe35e6010c9f353f0c0f934073a05b27d82aa7b0045cb03719365ea"
+                         "sha256":  "7e857a9b47b4f6110a1a74eafd09ddefc9fd9d87c49c0e4020a302698eb65bec"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

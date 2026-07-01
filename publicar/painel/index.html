@@ -141,24 +141,24 @@
       <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
     </div>
     <span style="margin-left:auto;display:flex;gap:8px;align-self:flex-start">
-      <button class="btn-ghost btn-sm" onclick="atualizarPrograma()">⬆ Atualizar</button>
+      <button class="btn-ghost btn-sm" id="btnAtualizar" onclick="atualizarPrograma()" style="position:relative">⬆ Atualizar<span id="updDot" style="display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #0d1420"></span></button>
       <button class="btn-ghost btn-sm" onclick="showNews()">✨ Novidades</button>
     </span>
   </header>
-  <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao){e.textContent='v'+j.versao;if(j.versao==='2.0'&&!localStorage.getItem('news_2_0')){localStorage.setItem('news_2_0','1');setTimeout(showNews,700);}}}).catch(function(){});</script>
+  <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao){e.textContent='v'+j.versao;if(localStorage.getItem('news_seen')!==j.versao){localStorage.setItem('news_seen',j.versao);setTimeout(showNews,700);}}}).catch(function(){});</script>
 
   <!-- modal Novidades -->
   <div id="newsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100;align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:#0d1420;border:1px solid var(--line2);border-radius:18px;max-width:470px;width:100%;padding:22px 24px;box-shadow:0 30px 80px -20px #000">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
-        <h2 style="margin:0;font-size:19px">✨ Novidades da versão 2.0</h2>
+        <h2 style="margin:0;font-size:19px">✨ Novidades da versão 3.0</h2>
         <button class="btn-ghost btn-sm" onclick="document.getElementById('newsModal').style.display='none'">✕</button>
       </div>
       <ul style="margin:12px 0 4px;padding-left:18px;line-height:1.75;font-size:14px;color:#c9d4e0">
-        <li>📸 <b>Espelho da tela</b> — veja a tela do celular no painel, ao vivo, e baixe prints (aba Avançado).</li>
+        <li>🔔 <b>Aviso de atualização</b> — popup automático e uma bolinha no botão quando sai versão nova.</li>
+        <li>⬆ <b>Atualizar no topo</b> — botão de atualização no cabeçalho, sempre à mão.</li>
+        <li>📸 <b>Espelho da tela</b> — veja a tela do celular ao vivo e baixe prints (aba Avançado).</li>
         <li>📊 <b>Diagnóstico visual</b> — bateria, armazenamento e RAM em medidores.</li>
-        <li>⬆ <b>Atualização pela nuvem</b> — o botão "Atualizar programa" baixa só o que mudou.</li>
-        <li>🏷 <b>Versão no cabeçalho</b> — sempre visível ao lado do título.</li>
       </ul>
     </div>
   </div>
@@ -949,8 +949,9 @@ async function checkForUpdatesOnLoad(){
   try{
     const j=await (await fetch('/api/update-check')).json();
     if(!(j&&j.configured&&j.ok&&j.total>0)) return;              // nada novo / nao configurado
-    if(localStorage.getItem('update_dismissed')===j.versaoRemota) return; // ja adiado essa versao
+    const dot=document.getElementById('updDot'); if(dot) dot.style.display='block';   // bolinha de aviso
     _updRemota=j.versaoRemota;
+    if(localStorage.getItem('update_dismissed')===j.versaoRemota) return; // adiado: mantem so a bolinha
     document.getElementById('upVer').textContent=j.versaoRemota+(j.versaoLocal?(' (atual: '+j.versaoLocal+')'):'');
     document.getElementById('upNotas').textContent=j.notas||'';
     document.getElementById('updateModal').style.display='flex';
