@@ -1,7 +1,7 @@
 {
-    "versao":  "3.5",
+    "versao":  "3.6",
     "data":  "2026-07-01",
-    "notas":  "Aba \u0027Resetar apps\u0027 renomeada para \u0027Gerenciar apps\u0027",
+    "notas":  "Clones: mostra sempre WhatsApp/WA Business/Telegram por perfil, com botao Instalar quando faltar",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "906b613c920e6325111a299a42d70bf98ca8e0fa3517e7577389a010bb2632f2"
+                         "sha256":  "7ab062c3c97f04555b799497d3ac95e7ed45047f0ebbfdbf9be8eb08c5545eec"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

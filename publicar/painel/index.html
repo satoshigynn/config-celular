@@ -811,15 +811,23 @@ function renderResetApps(){
     });
   });
   updMarkCount();
-  // ---- clones (perfis de trabalho) ----
+  // ---- clones (perfis de trabalho): mostra SEMPRE os apps clonaveis; se faltar, oferece Instalar ----
+  const cloneable = RESET_APPS.filter(a=>a.cat==='Mensageiros');   // WhatsApp, WA Business, Telegram
   cloneProfiles.forEach(pf=>{
     el.appendChild(catHeader('👯 Clones · '+pf.name+' (user '+pf.user+')'));
-    pf.pkgs.forEach(p=>{
-      const a=appForPkg(p); const name=(a?a.name:p);
-      const esc=name.replace(/'/g,"\\'"); const id=a?a.id:'';
-      const b=(act,txt)=>`<button class="btn-ghost btn-sm" onclick="resetAction('${act}','${id}','${esc}','${pf.user}')">${txt}</button>`;
-      const status=`<span style="color:var(--ok)">● clonado</span> <span style="color:var(--faint)">· ${p}</span>`;
-      el.appendChild(resetRow(a,name,status,b('clear','🧽 Limpar dados')+b('reinstall','♻ Reinstalar')+b('uninstall','🗑 Remover clone')));
+    cloneable.forEach(a=>{
+      const instPkg=a.pkgs.find(p=>pf.pkgs.includes(p));   // instalado nesse perfil?
+      const esc=a.name.replace(/'/g,"\\'");
+      const b=(act,txt)=>`<button class="btn-ghost btn-sm" onclick="resetAction('${act}','${a.id}','${esc}','${pf.user}')">${txt}</button>`;
+      let status,btns;
+      if(instPkg){
+        status=`<span style="color:var(--ok)">● clonado</span> <span style="color:var(--faint)">· ${instPkg}</span>`;
+        btns=b('clear','🧽 Limpar dados')+b('reinstall','♻ Reinstalar')+b('uninstall','🗑 Remover clone');
+      }else{
+        status=`<span style="color:var(--faint)">○ não clonado neste perfil</span>`;
+        btns=b('install','⬇ Instalar');
+      }
+      el.appendChild(resetRow(a,a.name,status,btns));
     });
   });
 }
@@ -833,7 +841,8 @@ function resetAction(action,id,name,user){
                      : `Desinstalar ${name}?\n\nRemove o app e seus dados do perfil principal (o clone do Island não é afetado).`,
     reinstall:`Reinstalar ${name}${onde}?\n\nRemove e instala de novo — zera TODOS os dados/logs.`,
     clear:`Limpar os dados de ${name}${onde}?\n\nApaga conversas/logs/cache (fica como recém-instalado), sem remover o app.`,
-    install:`Instalar ${name} a partir da pasta apks?`
+    install: clone ? `Clonar ${name} no perfil de trabalho (user ${user})?\n\nInstala o app OFICIAL nesse perfil (install-existing) — passa na recuperação de número.`
+                   : `Instalar ${name} a partir da pasta apks?`
   };
   if(!confirm(msgs[action]||('Confirmar '+action+'?'))) return;
   const dry=document.getElementById('dry').checked?'1':'0';
