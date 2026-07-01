@@ -299,20 +299,6 @@
         </div>
         <div id="diagWrap"><div class="hint">Conecte o celular e clique em Atualizar.</div></div>
       </div>
-      <!-- espelho da tela -->
-      <div class="card">
-        <div class="card-h">
-          <span class="t">📸 Espelho da tela</span>
-          <span style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
-            <label class="chk"><input type="checkbox" id="mirrorAuto" onchange="toggleMirror()"> Ao vivo</label>
-            <button class="btn-ghost btn-sm" onclick="shotScreen()">📷 Capturar</button>
-            <button class="btn-ghost btn-sm" onclick="saveShot()">💾 Baixar print</button>
-          </span>
-        </div>
-        <div id="mirrorWrap" style="display:flex;justify-content:center;align-items:center;min-height:130px">
-          <div class="hint">Conecte o celular e clique em <b>Capturar</b> (desbloqueie a tela para ver).</div>
-        </div>
-      </div>
       <!-- scan apps -->
       <div class="card">
       <div class="card-h">
@@ -357,13 +343,28 @@
       </div><!-- fim aba Avançado -->
     </div><!-- fim coluna das abas -->
 
-    <!-- DIREITA: log fixo (visível em todas as abas) -->
-    <div class="card sticky">
-      <div class="card-h">
-        <span class="t">⟩ Log ao vivo</span>
-        <button class="btn-ghost btn-sm" onclick="document.getElementById('log').innerHTML=''">Limpar</button>
+    <!-- DIREITA: tela ao vivo + log (fixos, visíveis em todas as abas) -->
+    <div class="sticky" style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-h">
+          <span class="t">📱 Tela ao vivo</span>
+          <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <label class="chk"><input type="checkbox" id="mirrorAuto" onchange="toggleMirror()"> Ao vivo</label>
+            <button class="btn-ghost btn-sm" onclick="shotScreen()">📷 Capturar</button>
+            <button class="btn-ghost btn-sm" aria-label="Baixar print da tela" onclick="saveShot()">💾</button>
+          </span>
+        </div>
+        <div id="mirrorWrap" style="display:flex;justify-content:center;align-items:center;min-height:120px">
+          <div class="hint">Conecte o celular (tela desbloqueada) e clique em <b>Capturar</b>, ou marque <b>Ao vivo</b>.</div>
+        </div>
       </div>
-      <div id="log"></div>
+      <div class="card">
+        <div class="card-h">
+          <span class="t">⟩ Log ao vivo</span>
+          <button class="btn-ghost btn-sm" onclick="document.getElementById('log').innerHTML=''">Limpar</button>
+        </div>
+        <div id="log"></div>
+      </div>
     </div>
   </div><!-- fim applayout -->
 
@@ -933,7 +934,7 @@ async function shotScreen(){
     const blob=await r.blob();
     if(lastShotUrl) URL.revokeObjectURL(lastShotUrl);
     lastShotUrl=URL.createObjectURL(blob);
-    w.innerHTML='<img alt="tela do celular" src="'+lastShotUrl+'" style="max-height:540px;max-width:100%;border-radius:18px;border:1px solid var(--line2);box-shadow:0 22px 55px -22px #000">';
+    w.innerHTML='<img alt="tela do celular" src="'+lastShotUrl+'" style="max-height:440px;max-width:100%;border-radius:14px;border:1px solid var(--line2);box-shadow:0 18px 45px -20px #000">';
   }catch(e){ w.innerHTML='<div class="hint">Falha ao capturar a tela.</div>'; }
 }
 function toggleMirror(){
@@ -1054,7 +1055,6 @@ function cloneRename(name){
 function showTab(name){
   document.querySelectorAll('.tab-panel').forEach(p=>{ p.hidden = (p.id!=='tab-'+name); });
   document.querySelectorAll('.tabs .tab').forEach(t=>{ t.classList.toggle('active', t.dataset.tab===name); });
-  if(name!=='avancado') stopMirror();   // para o espelho ao sair da aba
   if(name==='resetar') loadResetApps();
   if(name==='avancado') loadDiag();
 }

@@ -1,7 +1,7 @@
 {
-    "versao":  "3.2",
+    "versao":  "3.3",
     "data":  "2026-06-30",
-    "notas":  "Acessibilidade: modais com Esc/foco/dialog, avisos anunciaveis e rotulos (skill fixing-accessibility)",
+    "notas":  "Tela ao vivo fixada ao lado do log (visivel em todas as abas)",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -33,7 +33,7 @@
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "573f3a3a5a5b7b4239c735745bd3d60f4032660ee9638bd2679052f4f14f8689"
+                         "sha256":  "b630bbbf61298120c0022308c369fe97cf2df0b90771ea26775ad4848cd14acf"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
