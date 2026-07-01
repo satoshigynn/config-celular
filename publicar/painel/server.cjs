@@ -580,6 +580,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ---- versao do programa (mostrada no cabecalho do painel) ----
+  if (u.pathname === '/api/version') {
+    send(res, 200, 'application/json', JSON.stringify({ versao: versaoLocal() }));
+    return;
+  }
+
   // ---- verifica se ha atualizacao do programa (JSON) ----
   if (u.pathname === '/api/update-check') {
     const base = readBaseUrl();

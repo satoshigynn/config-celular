@@ -137,10 +137,11 @@
   <header>
     <div class="logo">📱</div>
     <div>
-      <h1>Configurador de Celular</h1>
+      <h1>Configurador de Celular <span id="verBadge" style="font-size:12px;font-weight:600;color:#8aa0b6;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);padding:2px 9px;border-radius:20px;margin-left:8px;vertical-align:middle"></span></h1>
       <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
     </div>
   </header>
+  <script>fetch('/api/version').then(function(r){return r.json();}).then(function(j){var e=document.getElementById('verBadge');if(e&&j&&j.versao)e.textContent='v'+j.versao;}).catch(function(){});</script>
 
   <!-- device -->
   <div class="card">

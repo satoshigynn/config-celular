@@ -1,7 +1,7 @@
 {
-    "versao":  "1.0",
+    "versao":  "1.1",
     "data":  "2026-06-30",
-    "notas":  "Versao inicial",
+    "notas":  "Mostra a versao do programa no cabecalho do painel",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -29,11 +29,11 @@
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "b8b5abef3c55987186e819a6f8af20630b4f97b237ffb00c621ed132400575bb"
+                         "sha256":  "42b4859192630afd2803561d9299d3bef5824bd853fa04315a4b14d40985d152"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "f50e5b018c0641d838d714e9055a27bd2aa1429d12273c4b5e6d6406664a9b26"
+                         "sha256":  "d1ecacec6d18c4dd260b76bca041edd6caf08193425afb3aad9365ccd8cf4741"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
