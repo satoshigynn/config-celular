@@ -1,11 +1,11 @@
 {
-    "versao":  "3.6",
-    "data":  "2026-07-01",
-    "notas":  "Clones: mostra sempre WhatsApp/WA Business/Telegram por perfil, com botao Instalar quando faltar",
+    "versao":  "3.7",
+    "data":  "2026-07-03",
+    "notas":  "Correcao critica: nao desabilita mais o com.heytap.mcs (removia por perfil) - evita o loop de reboot em realme",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "7146967f1670d0e0655e8a6480cfb0170feb5b1d40eda846fbc3d6c7feb2bd90"
+                         "sha256":  "4d1af130ba6fee95dbafeea5187fe55f024cf113867ee72756be9633250801e0"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

@@ -191,14 +191,31 @@ if(-not $SkipDebloat){
   }
 }
 
-# ================= 4. CONGELAR SERVICOS =================
+# ================= 4. NEUTRALIZAR SERVICOS (push/telemetria) =================
+# ATENCAO: NAO usar 'pm disable-user' no com.heytap.mcs. DESABILITAR (em vez de
+# remover) esse servico de push causa LOOP DE CRASH/REBOOT em realme/ColorOS.
+# Por isso REMOVEMOS por perfil (pm uninstall -k, reversivel via restaurar.ps1),
+# re-habilitando antes para sair de um estado "desabilitado" que ja esteja em loop.
 $Disable = Cfg 'disableServices' @("com.heytap.mcs","com.nearme.statistics.rom")
 if(-not $SkipServices){
-  Write-Host "`n== Congelando servicos de push/telemetria ==" -ForegroundColor Cyan
+  Write-Host "`n== Removendo servicos de push/telemetria (com seguranca) ==" -ForegroundColor Cyan
+  $serialSvc  = ((& $Adb get-serialno) -join '').Trim()
+  $logDirSvc  = Join-Path $ScriptDir "logs"
+  if(-not $DryRun){ New-Item -ItemType Directory -Force -Path $logDirSvc | Out-Null }
+  $remFileSvc = Join-Path $logDirSvc ("{0}-removidos.txt" -f ($serialSvc -replace '[^A-Za-z0-9_.-]','_'))
+  $usersOut   = (& $Adb shell pm list users 2>$null) -join "`n"
+  $usersSvc   = @([regex]::Matches($usersOut,'UserInfo\{(\d+)') | ForEach-Object { $_.Groups[1].Value })
+  if(-not $usersSvc){ $usersSvc = @('0') }
   foreach($p in $Disable){
-    if($DryRun){ Write-Host ("  [seria congelado] {0}" -f $p) -ForegroundColor Yellow; continue }
-    $r = (& $Adb shell pm disable-user --user 0 $p) 2>&1
-    Write-Host ("  {0,-32} {1}" -f $p, $(if($r -match "disabled"){"[congelado]"}else{"[--]"})) -ForegroundColor Green
+    if($DryRun){ Write-Host ("  [seria removido] {0}" -f $p) -ForegroundColor Yellow; continue }
+    $any = $false
+    foreach($u in $usersSvc){
+      & $Adb shell pm enable --user $u $p 2>$null | Out-Null      # sai do estado desabilitado (evita o loop)
+      $r = (& $Adb shell pm uninstall -k --user $u $p) 2>&1       # remove por perfil (mantem no firmware p/ restaurar)
+      if($r -match 'Success'){ $any = $true }
+    }
+    if($any){ Add-Content -Path $remFileSvc -Value $p -ErrorAction SilentlyContinue }
+    Write-Host ("  {0,-32} {1}" -f $p, $(if($any){"[removido]"}else{"[--/ausente]"})) -ForegroundColor $(if($any){"Green"}else{"DarkGray"})
   }
 }
 
