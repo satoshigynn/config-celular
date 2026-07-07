@@ -1,11 +1,11 @@
 {
-    "versao":  "3.9",
+    "versao":  "4.0",
     "data":  "2026-07-07",
-    "notas":  "Corrige a versao exibida que ficava defasada quando os arquivos ja estavam atualizados; instalador preserva config do usuario em reinstalacao",
+    "notas":  "Island: desliga o aviso \u0027Visualizacao em tela cheia\u0027 (immersive cling) que travava a automacao em realme/ColorOS + fallback no assistente",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "6af0545b314b614e5df7e77de17ffe7a888dcdb0d860232d0438efe2e6ec12be"
+                         "sha256":  "53d02da957c3e7f8563d1363e114b4c4a0e339405f68bbaf5fd20164d8dc2f25"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

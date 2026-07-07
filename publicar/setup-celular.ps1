@@ -100,6 +100,9 @@ function Wait-Device {
 Wait-Device
 # mantem a tela ligada durante a automacao (evita central travada quando a tela dorme)
 if(-not $DryRun){ & $Adb shell svc power stayon true 2>$null | Out-Null }
+# desliga o aviso "Visualizacao em tela cheia" (immersive cling do systemui): em
+# realme/ColorOS ele cobre o assistente do Island e TRAVA a automacao de UI.
+if(-not $DryRun){ & $Adb shell settings put secure immersive_mode_confirmations confirmed 2>$null | Out-Null }
 # Detecta se e' realme/ColorOS (App Market, OTA Oppo). As etapas 6/9/10 sao exclusivas dele.
 $pkgsAll = (& $Adb shell pm list packages) 2>$null
 $IsRealme = ($pkgsAll -match 'com\.oppo\.ota') -or ($pkgsAll -match 'com\.heytap\.market') -or ($pkgsAll -match 'com\.oplus\.')
@@ -392,6 +395,9 @@ function Setup-Island {
       if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
     }
     $xml = Get-UI
+    # fallback: se o aviso "Visualizacao em tela cheia" (systemui) aparecer, dispensa
+    if(Tap-By $xml "resource-id" "com.android.systemui:id/ok"){ Start-Sleep -Seconds 1; continue }
+    if($xml -match 'immersive_cling'){ & $Adb shell input swipe 360 5 360 400 2>$null | Out-Null; Start-Sleep -Seconds 1; continue }
     # avanca cada tela conhecida (Island welcome -> sistema -> info -> finalizacao)
     if(Tap-By $xml "text" "Aceitar e continuar"){ Start-Sleep -Seconds 4; continue }
     if(Tap-By $xml "text" "Próximo"){ Start-Sleep -Seconds 3; continue }
