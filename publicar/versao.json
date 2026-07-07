@@ -1,11 +1,11 @@
 {
-    "versao":  "4.3",
+    "versao":  "4.4",
     "data":  "2026-07-07",
-    "notas":  "Clones do Island: retry no bloqueio transitorio do adb (SecurityException permission to access user) + espera o perfil ficar acessivel",
+    "notas":  "Island: espera a FINALIZACAO real do assistente (clica todas as telas de finalizacao e so conclui apos o assistente parar de pedir acao) - nao pula mais o final",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "98ccb93792e800595aa8bfca6c6628179ba90f617d0a94784cf7b3e21f5fba3a"
+                         "sha256":  "6a33c2eaa502088748646f5a8c76f51ca12793335a73b8f73e9a7939f2d21ef8"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

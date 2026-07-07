@@ -406,14 +406,15 @@ function Setup-Island {
   $avancar = @('Aceitar e continuar','Aceitar','Concordar','Continuar','Próximo','Proximo',
     'Avançar','Avancar','Seguinte','Concluir','Concluído','Concluido','Finalizar','Feito',
     'Iniciar','Começar','Comecar','OK','Entendi','Permitir','Ativar','Configurar')
-  for($i=0; $i -lt 120; $i++){
-    # FINALIZOU de verdade so quando o Island vira Profile Owner (nao para antes!)
-    $wp = Get-ProfileOwnerId
-    if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
+  $quiet = 0            # checagens seguidas sem nenhum botao (assistente parou de pedir acao)
+  $avisouProv = $false
+  for($i=0; $i -lt 150; $i++){
+    $po = Get-ProfileOwnerId
+    if($po -ge 0 -and -not $avisouProv){ Write-Host "  Perfil provisionado (user $po) - finalizando o assistente do Island..." -ForegroundColor Cyan; $avisouProv = $true }
     $xml = Get-UI
     # aviso "Visualizacao em tela cheia" (systemui) cobrindo o assistente
-    if(Tap-By $xml "resource-id" "com.android.systemui:id/ok"){ Start-Sleep -Seconds 1; continue }
-    if($xml -match 'immersive_cling'){ & $Adb shell input swipe 360 5 360 400 2>$null | Out-Null; Start-Sleep -Seconds 1; continue }
+    if(Tap-By $xml "resource-id" "com.android.systemui:id/ok"){ $quiet = 0; Start-Sleep -Seconds 1; continue }
+    if($xml -match 'immersive_cling'){ & $Adb shell input swipe 360 5 360 400 2>$null | Out-Null; $quiet = 0; Start-Sleep -Seconds 1; continue }
     # botoes por ID (Island wizard + provisionamento do Android + dialogo positivo)
     $tapped = $false
     foreach($rid in @('com.oasisfeng.island:id/suw_navbar_next','com.oasisfeng.island:id/suw_navbar_more',
@@ -423,12 +424,19 @@ function Setup-Island {
     }
     # botoes por TEXTO (varias variantes)
     if(-not $tapped){ foreach($t in $avancar){ if(Tap-By $xml "text" $t){ $tapped = $true; break } } }
-    if($tapped){ Start-Sleep -Seconds 3; continue }
-    Start-Sleep -Seconds 3   # sem botao conhecido: provavelmente provisionando -> so espera
+    if($tapped){ $quiet = 0; Start-Sleep -Seconds 3; continue }   # clicou algo -> ainda ha finalizacao
+    # nenhum botao conhecido nesta tela:
+    if($po -ge 0){
+      # provisionado E sem mais telas para avancar. So considera FINALIZADO apos 3 checagens
+      # seguidas sem botao (assim NAO pula uma tela de finalizacao que ainda vá aparecer).
+      $quiet++
+      if($quiet -ge 3){ Write-Host "  Island FINALIZADO (perfil user $po)." -ForegroundColor Green; return $po }
+    }
+    Start-Sleep -Seconds 3   # ainda provisionando ou finalizando -> espera
   }
-  $wp = Get-ProfileOwnerId
-  if($wp -lt 0){ Write-Host "  Nao consegui finalizar o Island automaticamente - conclua o assistente na tela do celular." -ForegroundColor Yellow }
-  return $wp
+  $po = Get-ProfileOwnerId
+  if($po -lt 0){ Write-Host "  Nao consegui finalizar o Island automaticamente - conclua o assistente na tela do celular." -ForegroundColor Yellow }
+  return $po
 }
 # clona (install-existing) os apps no perfil de trabalho
 function Clone-Apps([int]$wp){
