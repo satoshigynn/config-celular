@@ -1,7 +1,7 @@
 {
     "versao":  "4.4",
     "data":  "2026-07-07",
-    "notas":  "Island: espera a FINALIZACAO real do assistente (clica todas as telas de finalizacao e so conclui apos o assistente parar de pedir acao) - nao pula mais o final",
+    "notas":  "Island: espera a FINALIZACAO real do assistente antes de clonar (nao pula o final)",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
