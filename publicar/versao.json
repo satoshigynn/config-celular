@@ -1,7 +1,7 @@
 {
-    "versao":  "3.8",
+    "versao":  "3.9",
     "data":  "2026-07-07",
-    "notas":  "Setup: silencia o log da automacao de UI (fim do flood de [!] ui.xml) e inicia o ADB no comeco (evita erro 10060)",
+    "notas":  "Corrige a versao exibida que ficava defasada quando os arquivos ja estavam atualizados; instalador preserva config do usuario em reinstalacao",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -29,7 +29,7 @@
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "94ceb8f97b15cdbaa9253b57032ede05938d8bbc528c39c4c839eebbade3158c"
+                         "sha256":  "8bfad53f67616478ab206cd091594ea1bc66c044e23634b66677366974a71089"
                      },
                      {
                          "caminho":  "painel/index.html",

@@ -653,7 +653,12 @@ const server = http.createServer((req, res) => {
         let h = ''; try { h = sha256(fs.readFileSync(abs)); } catch (_) {}
         if (h.toLowerCase() !== String(a.sha256 || '').toLowerCase()) alvos.push({ rel: a.caminho, abs, sha: String(a.sha256 || '').toLowerCase() });
       }
-      if (!alvos.length) { ev('>> Ja esta na versao mais recente (' + (man.versao || '?') + '). Nada a baixar.'); ev('__DONE__ 0'); return res.end(); }
+      if (!alvos.length) {
+        // arquivos ja identicos ao manifesto: sincroniza a versao local se estiver defasada
+        // (sem isso, o badge ficaria mostrando a versao antiga para sempre)
+        try { const vr = String(man.versao || '').trim(); if (vr && vr !== versaoLocal()) fs.writeFileSync(VERSAO_LOCAL, vr + '\n', 'utf8'); } catch (_) {}
+        ev('>> Ja esta na versao mais recente (' + (man.versao || '?') + '). Nada a baixar.'); ev('__DONE__ 0'); return res.end();
+      }
       ev('>> Baixando ' + alvos.length + ' arquivo(s)...');
       let i = 0;
       const proximo = () => {
