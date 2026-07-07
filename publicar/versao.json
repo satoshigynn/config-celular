@@ -1,11 +1,11 @@
 {
-    "versao":  "4.2",
+    "versao":  "4.3",
     "data":  "2026-07-07",
-    "notas":  "Island robusto: remove perfil pela metade de tentativa anterior, clica todos os botoes (assistente+provisionamento) e so finaliza quando vira Profile Owner de verdade",
+    "notas":  "Clones do Island: retry no bloqueio transitorio do adb (SecurityException permission to access user) + espera o perfil ficar acessivel",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "d1601d4fe8cff66aef53377ae8967e55d3c8883641bff8d20fafd6d7c010f61e"
+                         "sha256":  "98ccb93792e800595aa8bfca6c6628179ba90f617d0a94784cf7b3e21f5fba3a"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

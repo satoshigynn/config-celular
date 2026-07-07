@@ -432,6 +432,7 @@ function Setup-Island {
 }
 # clona (install-existing) os apps no perfil de trabalho
 function Clone-Apps([int]$wp){
+  Start-Sleep -Seconds 3   # deixa o perfil recem-criado ficar acessivel ao adb
   foreach($app in $CloneApps){
     $src = $null
     foreach($cand in $app.pkgs){ if(Is-Installed $cand){ $src = $cand; break } }
@@ -439,10 +440,19 @@ function Clone-Apps([int]$wp){
     if(((& $Adb shell pm list packages --user $wp $src) 2>$null) -match [regex]::Escape($src)){
       Write-Host ("  {0,-20} [ja clonado]" -f $app.name) -ForegroundColor Green; continue
     }
-    $r = (& $Adb shell pm install-existing --user $wp $src 2>&1)
-    $ok = ($r -match "installed|Success")
-    if(-not $ok -and ($r -match "permission to access user")){ $r = "Android bloqueou o adb de clonar no perfil (faca pelo app Island)" }
-    Write-Host ("  {0,-20} {1}" -f $app.name, $(if($ok){"[clonado]"}else{"[FALHOU] $r"})) -ForegroundColor $(if($ok){"Green"}else{"Red"})
+    # logo apos criar o perfil, o adb pode ser bloqueado por um instante
+    # (SecurityException "Shell does not have permission to access user"): tenta ate 4x.
+    $ok = $false; $r = ""
+    for($try=1; $try -le 4; $try++){
+      $r = (& $Adb shell pm install-existing --user $wp $src 2>&1 | Out-String)
+      if($r -match "installed|Success"){ $ok = $true; break }
+      if($r -match "permission to access user|SecurityException"){ Start-Sleep -Seconds 4; continue }
+      break   # outro tipo de erro: repetir nao ajuda
+    }
+    if(-not $ok -and ($r -match "permission to access user|SecurityException")){
+      $r = "adb bloqueado pelo perfil (transitorio) - rode 'Configurar' de novo ou clone pelo app Island"
+    }
+    Write-Host ("  {0,-20} {1}" -f $app.name, $(if($ok){"[clonado]"}else{"[FALHOU] "+(($r -replace '\s+',' ').Trim())})) -ForegroundColor $(if($ok){"Green"}else{"Red"})
   }
 }
 if(-not $SkipIsland){
