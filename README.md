@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.exe">
+  <a href="https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip">
     <img src="https://img.shields.io/badge/⬇%20BAIXAR-Instalador%20(Windows)-2ea44f?style=for-the-badge" alt="Baixar">
   </a>
 </p>
@@ -21,11 +21,15 @@
 
 ## ⬇️ Download
 
-**[» Baixar o instalador (ConfigCelular-Setup.exe) «](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.exe)**
+**[» Baixar (ConfigCelular-Setup.zip) «](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip)**
+
+Depois de baixar: **extraia o .zip** e execute o **ConfigCelular-Setup.exe** de dentro dele.
 
 Ou veja todas as versões na página de **[Releases](https://github.com/satoshigynn/config-celular/releases)**.
 
 > É um instalador único e autossuficiente: já vem com o **ADB** e o **Node** embutidos. Não precisa instalar mais nada.
+>
+> **Sobre avisos do Windows:** o programa **não tem vírus** — como ele ainda não é assinado digitalmente, o Windows pode mostrar *"O Windows protegeu o seu PC"*. É só clicar em **"Mais informações" → "Executar assim mesmo"**.
 
 ---
 
