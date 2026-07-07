@@ -75,9 +75,6 @@ function Get-Adb {
   return "$env:USERPROFILE\platform-tools\adb.exe"
 }
 $Adb = Get-Adb
-# sobe o daemon do ADB ja no inicio: evita o "cannot connect to daemon (10060)"
-# quando o servidor teria que iniciar a frio no meio da automacao de UI.
-& $Adb start-server 2>$null | Out-Null
 function adbx { & $Adb @args }
 
 # ---------- 2. Esperar celular autorizado ----------
@@ -100,9 +97,6 @@ function Wait-Device {
 Wait-Device
 # mantem a tela ligada durante a automacao (evita central travada quando a tela dorme)
 if(-not $DryRun){ & $Adb shell svc power stayon true 2>$null | Out-Null }
-# desliga o aviso "Visualizacao em tela cheia" (immersive cling do systemui): em
-# realme/ColorOS ele cobre o assistente do Island e TRAVA a automacao de UI.
-if(-not $DryRun){ & $Adb shell settings put secure immersive_mode_confirmations confirmed 2>$null | Out-Null }
 # Detecta se e' realme/ColorOS (App Market, OTA Oppo). As etapas 6/9/10 sao exclusivas dele.
 $pkgsAll = (& $Adb shell pm list packages) 2>$null
 $IsRealme = ($pkgsAll -match 'com\.oppo\.ota') -or ($pkgsAll -match 'com\.heytap\.market') -or ($pkgsAll -match 'com\.oplus\.')
@@ -110,11 +104,9 @@ if(-not $IsRealme){ Write-Host "  (Aparelho nao-realme detectado: etapas exclusi
 
 # ---------- helpers de UI (uiautomator) ----------
 function Get-UI {
-  # 2>$null silencia TAMBEM o stderr (o "1 file pulled..." do adb pull ia por stderr
-  # e virava um [!] no log). Sem isso, o log enche de linhas que parecem erro.
-  & $Adb shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null
-  & $Adb pull /sdcard/ui.xml "$env:TEMP\ui.xml" 2>$null | Out-Null
-  & $Adb shell rm /sdcard/ui.xml 2>$null | Out-Null
+  & $Adb shell uiautomator dump /sdcard/ui.xml | Out-Null
+  & $Adb pull /sdcard/ui.xml "$env:TEMP\ui.xml" | Out-Null
+  & $Adb shell rm /sdcard/ui.xml | Out-Null
   return [System.IO.File]::ReadAllText("$env:TEMP\ui.xml",[System.Text.Encoding]::UTF8)
 }
 # acha o centro do node cujo $attr = $val (e tem bounds) e clica
@@ -379,68 +371,36 @@ function Get-Foreground { return ((& $Adb shell dumpsys activity activities | Se
 # IMPORTANTE: nao pare assim que o perfil aparece - e' preciso seguir clicando ("Proximo"/
 # "Avancar") ate o Island chegar na MainActivity, senao o perfil fica PELA METADE (gera o
 # erro "Nao e' possivel adicionar um perfil de trabalho" e some dos launchers).
-# perfil FINALIZADO = Island virou "Profile Owner" (fim REAL do provisionamento).
-# So 'UserInfo{X: Island}' pode ser um perfil PELA METADE, entao nao basta.
-function Get-ProfileOwnerId {
-  $dp = (& $Adb shell dumpsys device_policy 2>$null) -join "`n"
-  $m = [regex]::Match($dp,'Profile Owner \(User (\d+)\)[\s\S]{0,300}?com\.oasisfeng\.island')
-  if($m.Success){ return [int]$m.Groups[1].Value } else { return -1 }
-}
 function Setup-Island {
-  # ja finalizado antes? nao mexe.
-  $wp = Get-ProfileOwnerId
+  $wp = Get-WorkProfileId
   if($wp -ge 0){ Write-Host "  Perfil de trabalho ja existe (user $wp)." -ForegroundColor Green; return $wp }
-  # perfil PELA METADE de uma tentativa anterior (usuario Island existe, mas sem Profile Owner):
-  # e' EXATAMENTE o que gera "Nao e' possivel adicionar um perfil de trabalho". Remove p/ recriar limpo.
-  $meio = Get-WorkProfileId
-  if($meio -ge 0){
-    Write-Host "  Perfil incompleto (user $meio) de uma tentativa anterior - removendo p/ recriar limpo..." -ForegroundColor Yellow
-    & $Adb shell pm remove-user $meio 2>$null | Out-Null
-    Start-Sleep -Seconds 4
-  }
   Write-Host "  Abrindo Island e criando o perfil de trabalho..." -ForegroundColor Cyan
+  # garante setup limpo
   & $Adb shell pm clear com.oasisfeng.island 2>$null | Out-Null
   & $Adb shell am start -n com.oasisfeng.island/.MainActivity 2>$null | Out-Null
   Start-Sleep -Seconds 4
-  # botoes de avanco: assistente do Island + telas de provisionamento do Android (varias variantes)
-  $avancar = @('Aceitar e continuar','Aceitar','Concordar','Continuar','Próximo','Proximo',
-    'Avançar','Avancar','Seguinte','Concluir','Concluído','Concluido','Finalizar','Feito',
-    'Iniciar','Começar','Comecar','OK','Entendi','Permitir','Ativar','Configurar')
-  $quiet = 0            # checagens seguidas sem nenhum botao (assistente parou de pedir acao)
-  $avisouProv = $false
-  for($i=0; $i -lt 150; $i++){
-    $po = Get-ProfileOwnerId
-    if($po -ge 0 -and -not $avisouProv){ Write-Host "  Perfil provisionado (user $po) - finalizando o assistente do Island..." -ForegroundColor Cyan; $avisouProv = $true }
+  for($i=0; $i -lt 90; $i++){
+    $fg = Get-Foreground
+    # finalizou de verdade quando o Island chega na tela principal
+    if($fg -match "oasisfeng.island/.MainActivity"){
+      $wp = Get-WorkProfileId
+      if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
+    }
     $xml = Get-UI
-    # aviso "Visualizacao em tela cheia" (systemui) cobrindo o assistente
-    if(Tap-By $xml "resource-id" "com.android.systemui:id/ok"){ $quiet = 0; Start-Sleep -Seconds 1; continue }
-    if($xml -match 'immersive_cling'){ & $Adb shell input swipe 360 5 360 400 2>$null | Out-Null; $quiet = 0; Start-Sleep -Seconds 1; continue }
-    # botoes por ID (Island wizard + provisionamento do Android + dialogo positivo)
-    $tapped = $false
-    foreach($rid in @('com.oasisfeng.island:id/suw_navbar_next','com.oasisfeng.island:id/suw_navbar_more',
-      'com.android.managedprovisioning:id/next_button','com.android.managedprovisioning:id/setup_button',
-      'android:id/button1')){
-      if(Tap-By $xml "resource-id" $rid){ $tapped = $true; break }
-    }
-    # botoes por TEXTO (varias variantes)
-    if(-not $tapped){ foreach($t in $avancar){ if(Tap-By $xml "text" $t){ $tapped = $true; break } } }
-    if($tapped){ $quiet = 0; Start-Sleep -Seconds 3; continue }   # clicou algo -> ainda ha finalizacao
-    # nenhum botao conhecido nesta tela:
-    if($po -ge 0){
-      # provisionado E sem mais telas para avancar. So considera FINALIZADO apos 3 checagens
-      # seguidas sem botao (assim NAO pula uma tela de finalizacao que ainda vá aparecer).
-      $quiet++
-      if($quiet -ge 3){ Write-Host "  Island FINALIZADO (perfil user $po)." -ForegroundColor Green; return $po }
-    }
-    Start-Sleep -Seconds 3   # ainda provisionando ou finalizando -> espera
+    # avanca cada tela conhecida (Island welcome -> sistema -> info -> finalizacao)
+    if(Tap-By $xml "text" "Aceitar e continuar"){ Start-Sleep -Seconds 4; continue }
+    if(Tap-By $xml "text" "Próximo"){ Start-Sleep -Seconds 3; continue }
+    if(Tap-By $xml "text" "Avançar"){ Start-Sleep -Seconds 3; continue }
+    if(Tap-By $xml "text" "Concluir"){ Start-Sleep -Seconds 3; continue }
+    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_next"){ Start-Sleep -Seconds 3; continue }
+    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_more"){ Start-Sleep -Seconds 2; continue }
+    Start-Sleep -Seconds 3   # provavelmente provisionando: so espera
   }
-  $po = Get-ProfileOwnerId
-  if($po -lt 0){ Write-Host "  Nao consegui finalizar o Island automaticamente - conclua o assistente na tela do celular." -ForegroundColor Yellow }
-  return $po
+  Write-Host "  Nao consegui confirmar o perfil de trabalho - finalize o Island na tela." -ForegroundColor Yellow
+  return (Get-WorkProfileId)
 }
 # clona (install-existing) os apps no perfil de trabalho
 function Clone-Apps([int]$wp){
-  Start-Sleep -Seconds 3   # deixa o perfil recem-criado ficar acessivel ao adb
   foreach($app in $CloneApps){
     $src = $null
     foreach($cand in $app.pkgs){ if(Is-Installed $cand){ $src = $cand; break } }
@@ -448,19 +408,10 @@ function Clone-Apps([int]$wp){
     if(((& $Adb shell pm list packages --user $wp $src) 2>$null) -match [regex]::Escape($src)){
       Write-Host ("  {0,-20} [ja clonado]" -f $app.name) -ForegroundColor Green; continue
     }
-    # logo apos criar o perfil, o adb pode ser bloqueado por um instante
-    # (SecurityException "Shell does not have permission to access user"): tenta ate 4x.
-    $ok = $false; $r = ""
-    for($try=1; $try -le 4; $try++){
-      $r = (& $Adb shell pm install-existing --user $wp $src 2>&1 | Out-String)
-      if($r -match "installed|Success"){ $ok = $true; break }
-      if($r -match "permission to access user|SecurityException"){ Start-Sleep -Seconds 4; continue }
-      break   # outro tipo de erro: repetir nao ajuda
-    }
-    if(-not $ok -and ($r -match "permission to access user|SecurityException")){
-      $r = "adb bloqueado pelo perfil (transitorio) - rode 'Configurar' de novo ou clone pelo app Island"
-    }
-    Write-Host ("  {0,-20} {1}" -f $app.name, $(if($ok){"[clonado]"}else{"[FALHOU] "+(($r -replace '\s+',' ').Trim())})) -ForegroundColor $(if($ok){"Green"}else{"Red"})
+    $r = (& $Adb shell pm install-existing --user $wp $src 2>&1)
+    $ok = ($r -match "installed|Success")
+    if(-not $ok -and ($r -match "permission to access user")){ $r = "Android bloqueou o adb de clonar no perfil (faca pelo app Island)" }
+    Write-Host ("  {0,-20} {1}" -f $app.name, $(if($ok){"[clonado]"}else{"[FALHOU] $r"})) -ForegroundColor $(if($ok){"Green"}else{"Red"})
   }
 }
 if(-not $SkipIsland){
@@ -470,19 +421,9 @@ if(-not $SkipIsland){
     foreach($app in $CloneApps){ Write-Host ("    - {0}" -f $app.name) -ForegroundColor Yellow }
   } elseif(-not (Is-Installed "com.oasisfeng.island")){
     Write-Host "  Island nao esta instalado (coloque o APK em .\apks). Pulando." -ForegroundColor Yellow
-  } elseif(-not (((& $Adb shell pm list features) 2>$null) -match 'android\.software\.managed_users')){
-    # Aparelho sem suporte a perfil de trabalho (comum em realme de entrada, ex.: Note 60x):
-    # o Android recusa com "Nao e' possivel adicionar um perfil de trabalho". Pula sem travar.
-    Write-Host "  Este aparelho NAO suporta perfil de trabalho -> Island nao funciona aqui." -ForegroundColor Yellow
-    Write-Host "  -> Use o CloneApp ou um usuario secundario para os clones de WhatsApp." -ForegroundColor Yellow
   } else {
     $wp = Setup-Island
-    if($wp -ge 0){ Clone-Apps $wp }
-    else {
-      Write-Host "  Nao foi possivel criar o perfil de trabalho neste aparelho." -ForegroundColor Yellow
-      Write-Host "  (Se apareceu 'Nao e possivel adicionar um perfil de trabalho', o modelo nao suporta Island;" -ForegroundColor DarkGray
-      Write-Host "   use o CloneApp ou um usuario secundario para os clones.)" -ForegroundColor DarkGray
-    }
+    if($wp -ge 0){ Clone-Apps $wp } else { Write-Host "  Sem perfil de trabalho - clones nao feitos." -ForegroundColor Yellow }
     & $Adb shell input keyevent KEYCODE_HOME 2>$null | Out-Null
   }
 }
@@ -613,7 +554,7 @@ if(-not $SkipSuggestions){
     if(Tap-By $xml "text" "Configurações da gaveta de aplicativos"){ Start-Sleep -Seconds 2 }
     $xml = Get-UI
     $rs = Get-RowStatus $xml "Mostrar aplicativos sugeridos"
-    if($null -eq $rs){ Write-Host "  [pulado] este launcher nao tem essa opcao (ok, nada a fazer)." -ForegroundColor DarkGray }
+    if($null -eq $rs){ Write-Host "  Opcao nao encontrada (launcher diferente?)." -ForegroundColor DarkGray }
     elseif($rs.state -eq 'off'){ Write-Host "  Ja esta desligado." -ForegroundColor Green }
     else {
       $tapX = if($rs.x -ge 0){ $rs.x } else { [int]$w - 70 }

@@ -1,11 +1,11 @@
 {
-    "versao":  "4.4",
+    "versao":  "4.6",
     "data":  "2026-07-07",
-    "notas":  "Island: espera a FINALIZACAO real do assistente antes de clonar (nao pula o final)",
+    "notas":  "Island revertido para a logica da 3.7 (auto-configurador original). Mantidos o conserto do MCS (loop de reboot) e todos os recursos do painel.",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "6a33c2eaa502088748646f5a8c76f51ca12793335a73b8f73e9a7939f2d21ef8"
+                         "sha256":  "4d1af130ba6fee95dbafeea5187fe55f024cf113867ee72756be9633250801e0"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",
