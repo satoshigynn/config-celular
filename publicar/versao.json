@@ -1,11 +1,11 @@
 {
-    "versao":  "4.1",
+    "versao":  "4.2",
     "data":  "2026-07-07",
-    "notas":  "Setup detecta aparelho sem suporte a perfil de trabalho (ex.: realme Note 60x) e pula o Island com aviso, sugerindo CloneApp/usuario secundario",
+    "notas":  "Island robusto: remove perfil pela metade de tentativa anterior, clica todos os botoes (assistente+provisionamento) e so finaliza quando vira Profile Owner de verdade",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "be651ac681d0808fde09886d03aee9a75ca2db14776406fab2cca9451853f69e"
+                         "sha256":  "d1601d4fe8cff66aef53377ae8967e55d3c8883641bff8d20fafd6d7c010f61e"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

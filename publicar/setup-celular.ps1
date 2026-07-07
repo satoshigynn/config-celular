@@ -379,36 +379,56 @@ function Get-Foreground { return ((& $Adb shell dumpsys activity activities | Se
 # IMPORTANTE: nao pare assim que o perfil aparece - e' preciso seguir clicando ("Proximo"/
 # "Avancar") ate o Island chegar na MainActivity, senao o perfil fica PELA METADE (gera o
 # erro "Nao e' possivel adicionar um perfil de trabalho" e some dos launchers).
+# perfil FINALIZADO = Island virou "Profile Owner" (fim REAL do provisionamento).
+# So 'UserInfo{X: Island}' pode ser um perfil PELA METADE, entao nao basta.
+function Get-ProfileOwnerId {
+  $dp = (& $Adb shell dumpsys device_policy 2>$null) -join "`n"
+  $m = [regex]::Match($dp,'Profile Owner \(User (\d+)\)[\s\S]{0,300}?com\.oasisfeng\.island')
+  if($m.Success){ return [int]$m.Groups[1].Value } else { return -1 }
+}
 function Setup-Island {
-  $wp = Get-WorkProfileId
+  # ja finalizado antes? nao mexe.
+  $wp = Get-ProfileOwnerId
   if($wp -ge 0){ Write-Host "  Perfil de trabalho ja existe (user $wp)." -ForegroundColor Green; return $wp }
+  # perfil PELA METADE de uma tentativa anterior (usuario Island existe, mas sem Profile Owner):
+  # e' EXATAMENTE o que gera "Nao e' possivel adicionar um perfil de trabalho". Remove p/ recriar limpo.
+  $meio = Get-WorkProfileId
+  if($meio -ge 0){
+    Write-Host "  Perfil incompleto (user $meio) de uma tentativa anterior - removendo p/ recriar limpo..." -ForegroundColor Yellow
+    & $Adb shell pm remove-user $meio 2>$null | Out-Null
+    Start-Sleep -Seconds 4
+  }
   Write-Host "  Abrindo Island e criando o perfil de trabalho..." -ForegroundColor Cyan
-  # garante setup limpo
   & $Adb shell pm clear com.oasisfeng.island 2>$null | Out-Null
   & $Adb shell am start -n com.oasisfeng.island/.MainActivity 2>$null | Out-Null
   Start-Sleep -Seconds 4
-  for($i=0; $i -lt 90; $i++){
-    $fg = Get-Foreground
-    # finalizou de verdade quando o Island chega na tela principal
-    if($fg -match "oasisfeng.island/.MainActivity"){
-      $wp = Get-WorkProfileId
-      if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
-    }
+  # botoes de avanco: assistente do Island + telas de provisionamento do Android (varias variantes)
+  $avancar = @('Aceitar e continuar','Aceitar','Concordar','Continuar','Próximo','Proximo',
+    'Avançar','Avancar','Seguinte','Concluir','Concluído','Concluido','Finalizar','Feito',
+    'Iniciar','Começar','Comecar','OK','Entendi','Permitir','Ativar','Configurar')
+  for($i=0; $i -lt 120; $i++){
+    # FINALIZOU de verdade so quando o Island vira Profile Owner (nao para antes!)
+    $wp = Get-ProfileOwnerId
+    if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
     $xml = Get-UI
-    # fallback: se o aviso "Visualizacao em tela cheia" (systemui) aparecer, dispensa
+    # aviso "Visualizacao em tela cheia" (systemui) cobrindo o assistente
     if(Tap-By $xml "resource-id" "com.android.systemui:id/ok"){ Start-Sleep -Seconds 1; continue }
     if($xml -match 'immersive_cling'){ & $Adb shell input swipe 360 5 360 400 2>$null | Out-Null; Start-Sleep -Seconds 1; continue }
-    # avanca cada tela conhecida (Island welcome -> sistema -> info -> finalizacao)
-    if(Tap-By $xml "text" "Aceitar e continuar"){ Start-Sleep -Seconds 4; continue }
-    if(Tap-By $xml "text" "Próximo"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "text" "Avançar"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "text" "Concluir"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_next"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_more"){ Start-Sleep -Seconds 2; continue }
-    Start-Sleep -Seconds 3   # provavelmente provisionando: so espera
+    # botoes por ID (Island wizard + provisionamento do Android + dialogo positivo)
+    $tapped = $false
+    foreach($rid in @('com.oasisfeng.island:id/suw_navbar_next','com.oasisfeng.island:id/suw_navbar_more',
+      'com.android.managedprovisioning:id/next_button','com.android.managedprovisioning:id/setup_button',
+      'android:id/button1')){
+      if(Tap-By $xml "resource-id" $rid){ $tapped = $true; break }
+    }
+    # botoes por TEXTO (varias variantes)
+    if(-not $tapped){ foreach($t in $avancar){ if(Tap-By $xml "text" $t){ $tapped = $true; break } } }
+    if($tapped){ Start-Sleep -Seconds 3; continue }
+    Start-Sleep -Seconds 3   # sem botao conhecido: provavelmente provisionando -> so espera
   }
-  Write-Host "  Nao consegui confirmar o perfil de trabalho - finalize o Island na tela." -ForegroundColor Yellow
-  return (Get-WorkProfileId)
+  $wp = Get-ProfileOwnerId
+  if($wp -lt 0){ Write-Host "  Nao consegui finalizar o Island automaticamente - conclua o assistente na tela do celular." -ForegroundColor Yellow }
+  return $wp
 }
 # clona (install-existing) os apps no perfil de trabalho
 function Clone-Apps([int]$wp){
