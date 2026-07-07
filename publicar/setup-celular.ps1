@@ -75,6 +75,9 @@ function Get-Adb {
   return "$env:USERPROFILE\platform-tools\adb.exe"
 }
 $Adb = Get-Adb
+# sobe o daemon do ADB ja no inicio: evita o "cannot connect to daemon (10060)"
+# quando o servidor teria que iniciar a frio no meio da automacao de UI.
+& $Adb start-server 2>$null | Out-Null
 function adbx { & $Adb @args }
 
 # ---------- 2. Esperar celular autorizado ----------
@@ -104,9 +107,11 @@ if(-not $IsRealme){ Write-Host "  (Aparelho nao-realme detectado: etapas exclusi
 
 # ---------- helpers de UI (uiautomator) ----------
 function Get-UI {
-  & $Adb shell uiautomator dump /sdcard/ui.xml | Out-Null
-  & $Adb pull /sdcard/ui.xml "$env:TEMP\ui.xml" | Out-Null
-  & $Adb shell rm /sdcard/ui.xml | Out-Null
+  # 2>$null silencia TAMBEM o stderr (o "1 file pulled..." do adb pull ia por stderr
+  # e virava um [!] no log). Sem isso, o log enche de linhas que parecem erro.
+  & $Adb shell uiautomator dump /sdcard/ui.xml 2>$null | Out-Null
+  & $Adb pull /sdcard/ui.xml "$env:TEMP\ui.xml" 2>$null | Out-Null
+  & $Adb shell rm /sdcard/ui.xml 2>$null | Out-Null
   return [System.IO.File]::ReadAllText("$env:TEMP\ui.xml",[System.Text.Encoding]::UTF8)
 }
 # acha o centro do node cujo $attr = $val (e tem bounds) e clica
@@ -554,7 +559,7 @@ if(-not $SkipSuggestions){
     if(Tap-By $xml "text" "Configurações da gaveta de aplicativos"){ Start-Sleep -Seconds 2 }
     $xml = Get-UI
     $rs = Get-RowStatus $xml "Mostrar aplicativos sugeridos"
-    if($null -eq $rs){ Write-Host "  Opcao nao encontrada (launcher diferente?)." -ForegroundColor DarkGray }
+    if($null -eq $rs){ Write-Host "  [pulado] este launcher nao tem essa opcao (ok, nada a fazer)." -ForegroundColor DarkGray }
     elseif($rs.state -eq 'off'){ Write-Host "  Ja esta desligado." -ForegroundColor Green }
     else {
       $tapX = if($rs.x -ge 0){ $rs.x } else { [int]$w - 70 }

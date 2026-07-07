@@ -1,11 +1,11 @@
 {
-    "versao":  "3.7",
-    "data":  "2026-07-03",
-    "notas":  "Correcao critica: nao desabilita mais o com.heytap.mcs (removia por perfil) - evita o loop de reboot em realme",
+    "versao":  "3.8",
+    "data":  "2026-07-07",
+    "notas":  "Setup: silencia o log da automacao de UI (fim do flood de [!] ui.xml) e inicia o ADB no comeco (evita erro 10060)",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "4d1af130ba6fee95dbafeea5187fe55f024cf113867ee72756be9633250801e0"
+                         "sha256":  "6af0545b314b614e5df7e77de17ffe7a888dcdb0d860232d0438efe2e6ec12be"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",
