@@ -1,11 +1,11 @@
 {
-    "versao":  "4.0",
+    "versao":  "4.1",
     "data":  "2026-07-07",
-    "notas":  "Island: desliga o aviso \u0027Visualizacao em tela cheia\u0027 (immersive cling) que travava a automacao em realme/ColorOS + fallback no assistente",
+    "notas":  "Setup detecta aparelho sem suporte a perfil de trabalho (ex.: realme Note 60x) e pula o Island com aviso, sugerindo CloneApp/usuario secundario",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "53d02da957c3e7f8563d1363e114b4c4a0e339405f68bbaf5fd20164d8dc2f25"
+                         "sha256":  "be651ac681d0808fde09886d03aee9a75ca2db14776406fab2cca9451853f69e"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",

@@ -432,9 +432,19 @@ if(-not $SkipIsland){
     foreach($app in $CloneApps){ Write-Host ("    - {0}" -f $app.name) -ForegroundColor Yellow }
   } elseif(-not (Is-Installed "com.oasisfeng.island")){
     Write-Host "  Island nao esta instalado (coloque o APK em .\apks). Pulando." -ForegroundColor Yellow
+  } elseif(-not (((& $Adb shell pm list features) 2>$null) -match 'android\.software\.managed_users')){
+    # Aparelho sem suporte a perfil de trabalho (comum em realme de entrada, ex.: Note 60x):
+    # o Android recusa com "Nao e' possivel adicionar um perfil de trabalho". Pula sem travar.
+    Write-Host "  Este aparelho NAO suporta perfil de trabalho -> Island nao funciona aqui." -ForegroundColor Yellow
+    Write-Host "  -> Use o CloneApp ou um usuario secundario para os clones de WhatsApp." -ForegroundColor Yellow
   } else {
     $wp = Setup-Island
-    if($wp -ge 0){ Clone-Apps $wp } else { Write-Host "  Sem perfil de trabalho - clones nao feitos." -ForegroundColor Yellow }
+    if($wp -ge 0){ Clone-Apps $wp }
+    else {
+      Write-Host "  Nao foi possivel criar o perfil de trabalho neste aparelho." -ForegroundColor Yellow
+      Write-Host "  (Se apareceu 'Nao e possivel adicionar um perfil de trabalho', o modelo nao suporta Island;" -ForegroundColor DarkGray
+      Write-Host "   use o CloneApp ou um usuario secundario para os clones.)" -ForegroundColor DarkGray
+    }
     & $Adb shell input keyevent KEYCODE_HOME 2>$null | Out-Null
   }
 }
