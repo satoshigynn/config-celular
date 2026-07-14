@@ -1,7 +1,7 @@
 {
-    "versao":  "4.6",
-    "data":  "2026-07-07",
-    "notas":  "Island revertido para a logica da 3.7 (auto-configurador original). Mantidos o conserto do MCS (loop de reboot) e todos os recursos do painel.",
+    "versao":  "4.7",
+    "data":  "2026-07-14",
+    "notas":  "Novo botao \u0027Atualizar tudo\u0027: 1 clique atualiza o programa e ja baixa os APKs mais recentes (WhatsApp, WhatsApp Business, Telegram, Island).",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
@@ -29,11 +29,11 @@
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "8bfad53f67616478ab206cd091594ea1bc66c044e23634b66677366974a71089"
+                         "sha256":  "f73eb66b073f1a36e33a0a3911e612522e8b4c9cbb26fe228515c4eda817770a"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "7ab062c3c97f04555b799497d3ac95e7ed45047f0ebbfdbf9be8eb08c5545eec"
+                         "sha256":  "ebfc4ccc0e71aa8f0418aae4cd717bec9959a5205f26e52d63d9499f590614d4"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

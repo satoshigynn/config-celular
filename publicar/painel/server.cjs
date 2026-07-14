@@ -611,6 +611,47 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ---- Atualizar APKs pela NUVEM: baixa os APKs curados (do Release) p/ a pasta apks ----
+  if (u.pathname === '/api/update-apks-cloud') {
+    cors(res);
+    res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+    const ev = (l) => res.write(`data: ${l}\n\n`);
+    const base = readBaseUrl();
+    if (!baseConfigurado(base)) { ev('[!] Atualizacao nao configurada (update.json).'); ev('__DONE__ 1'); return res.end(); }
+    ev('>> Verificando APKs na nuvem...');
+    httpGetBuffer(base + '/apks.json', (err, buf) => {
+      if (err) { ev('[!] Nenhum catalogo de APKs publicado ainda (apks.json): ' + err.message); ev('__DONE__ 1'); return res.end(); }
+      let man; try { man = JSON.parse(semBom(buf.toString('utf8'))); } catch (e) { ev('[!] apks.json invalido.'); ev('__DONE__ 1'); return res.end(); }
+      const list = Array.isArray(man.apks) ? man.apks : [];
+      const alvos = [];
+      for (const a of list) {
+        if (!/^[A-Za-z0-9_.-]+\.apk$/i.test(a.arquivo || '')) continue;   // so nome de .apk simples (seguranca)
+        let h = ''; try { h = sha256(fs.readFileSync(path.join(APKDIR, a.arquivo))); } catch (_) {}
+        if (h.toLowerCase() !== String(a.sha256 || '').toLowerCase()) alvos.push(a);
+      }
+      if (!alvos.length) { ev('>> APKs ja estao na versao mais recente. Nada a baixar.'); ev('__DONE__ 0'); return res.end(); }
+      ev('>> Baixando ' + alvos.length + ' APK(s) atualizado(s)...');
+      try { fs.mkdirSync(APKDIR, { recursive: true }); } catch (_) {}
+      let i = 0;
+      const proximo = () => {
+        if (i >= alvos.length) { ev('>> APKs atualizados com sucesso.'); ev('__DONE__ 0'); return res.end(); }
+        const a = alvos[i++];
+        ev('  baixando ' + a.arquivo + ' (v' + (a.versionName || '?') + ')...');
+        httpGetBuffer(a.url, (e2, data) => {
+          if (e2) { ev('[!] Falha ao baixar ' + a.arquivo + ': ' + e2.message); ev('__DONE__ 1'); return res.end(); }
+          if (!(data.length > 4 && data[0] === 0x50 && data[1] === 0x4B)) { ev('[!] ' + a.arquivo + ': nao parece um APK (ZIP). Abortado.'); ev('__DONE__ 1'); return res.end(); }
+          if (a.sha256 && sha256(data).toLowerCase() !== String(a.sha256).toLowerCase()) { ev('[!] ' + a.arquivo + ': verificacao (hash) falhou. Abortado.'); ev('__DONE__ 1'); return res.end(); }
+          try { fs.writeFileSync(path.join(APKDIR, a.arquivo), data); ev('  [ok] ' + a.arquivo); }
+          catch (werr) { ev('[!] Nao gravou ' + a.arquivo + ': ' + werr.message); ev('__DONE__ 1'); return res.end(); }
+          proximo();
+        });
+      };
+      proximo();
+    });
+    req.on('close', () => {});
+    return;
+  }
+
   // ---- verifica se ha atualizacao do programa (JSON) ----
   if (u.pathname === '/api/update-check') {
     const base = readBaseUrl();

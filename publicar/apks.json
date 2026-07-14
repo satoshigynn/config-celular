@@ -1,0 +1,29 @@
+{
+    "geradoEm":  "2026-07-14",
+    "apks":  [
+                 {
+                     "arquivo":  "WhatsApp.apk",
+                     "versionName":  "2.26.24.80",
+                     "sha256":  "e72e9e1aa6aa52ecf93d1d5d14bb3cc95938d864da1149076ae7dd0bbe52e382",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsApp.apk"
+                 },
+                 {
+                     "arquivo":  "WhatsAppBusiness.apk",
+                     "versionName":  "2.26.24.79",
+                     "sha256":  "396a1cb6da3dc832d59077a258eda89efb81b52d2373e78e3574c6fa407a21f5",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsAppBusiness.apk"
+                 },
+                 {
+                     "arquivo":  "Telegram.apk",
+                     "versionName":  "12.8.3",
+                     "sha256":  "7e56bb046b674ac0440f49d2a0e072365566b3f48470e2c1e7ca0163242dd503",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Telegram.apk"
+                 },
+                 {
+                     "arquivo":  "Island.apk",
+                     "versionName":  "6.2.1",
+                     "sha256":  "374e5d23c6e64b71235ad7c9bd7060b7119b71e3bd47b9b216d87c222170f611",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Island.apk"
+                 }
+             ]
+}

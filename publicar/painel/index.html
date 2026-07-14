@@ -145,7 +145,7 @@
       <p>realme / ColorOS · limpeza, apps, clones e ajustes via ADB local</p>
     </div>
     <span style="margin-left:auto;display:flex;gap:8px;align-self:flex-start">
-      <button class="btn-ghost btn-sm" id="btnAtualizar" onclick="atualizarPrograma()" style="position:relative">⬆ Atualizar<span id="updDot" aria-hidden="true" style="display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #0d1420"></span></button>
+      <button class="btn-ghost btn-sm" id="btnAtualizar" onclick="atualizarTudo()" title="Atualiza o programa e baixa os APKs mais recentes, tudo de uma vez" style="position:relative">🔄 Atualizar tudo<span id="updDot" aria-hidden="true" style="display:none;position:absolute;top:-4px;right:-4px;width:9px;height:9px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px #0d1420"></span></button>
       <button class="btn-ghost btn-sm" onclick="showNews()">✨ Novidades</button>
     </span>
   </header>
@@ -554,6 +554,39 @@ async function atualizarPrograma(){
       stop(); return; }
     log(e.data); };
   es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
+}
+// UM CLIQUE: atualiza o programa (se houver nova versao) e depois baixa os APKs curados da nuvem
+async function atualizarTudo(){
+  if(running) return;
+  log('== 🔄 Atualizar tudo (programa + APKs) ==');
+  const rodarApks=()=>{
+    log('>> Baixando APKs atualizados da nuvem...');
+    es=new EventSource('/api/update-apks-cloud');
+    es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ const code=e.data.split(' ')[1];
+        if(code==='0'){ toast('Tudo atualizado ✓'); notifyDone('Atualização completa ✓'); }
+        else { toast('APKs: veja o log'); }
+        stop(); return; }
+      log(e.data); };
+    es.onerror=()=>{ log('[!] Conexão perdida (APKs).'); stop(); };
+  };
+  let j=null;
+  try{ j=await (await fetch('/api/update-check')).json(); }catch(e){}
+  if(j && j.ok && j.configured && j.total){
+    running=true; setButtons(); log('== Atualizando programa para '+j.versaoRemota+' ==');
+    es=new EventSource('/api/update-run');
+    es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ const code=e.data.split(' ')[1];
+        if(es){ es.close(); es=null; }
+        if(code==='0'){ log('>> Programa atualizado. Agora os APKs...'); rodarApks(); }
+        else { toast('Falha ao atualizar o programa'); stop(); }
+        return; }
+      log(e.data); };
+    es.onerror=()=>{ log('[!] Conexão perdida (programa).'); stop(); };
+  } else {
+    if(j && j.configured===false){ log('>> (atualização do programa não configurada — baixando só os APKs)'); }
+    else { log('>> Programa já está na versão mais recente. Verificando APKs...'); }
+    running=true; setButtons();
+    rodarApks();
+  }
 }
 function stop(){ if(es){ es.close(); es=null; } running=false; setButtons(); }
 
