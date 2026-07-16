@@ -1,13 +1,13 @@
-<h1 align="center">ðŸ“± Config Celular</h1>
+<h1 align="center">📱 Config Celular</h1>
 
 <p align="center">
-  Ferramenta portÃ¡til para configurar celulares Android (realme/ColorOS e outros) via USB â€”
-  limpeza de bloatware, instalaÃ§Ã£o de apps, clones, tema escuro e muito mais, tudo por um painel local.
+  Ferramenta portátil para configurar celulares Android (realme/ColorOS e outros) via USB —
+  limpeza de bloatware, instalação de apps, clones, tema escuro e muito mais, tudo por um painel local.
 </p>
 
 <p align="center">
   <a href="https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip">
-    <img src="https://img.shields.io/badge/â¬‡%20BAIXAR-Instalador%20(Windows)-2ea44f?style=for-the-badge" alt="Baixar">
+    <img src="https://img.shields.io/badge/⬇%20BAIXAR-Instalador%20(Windows)-2ea44f?style=for-the-badge" alt="Baixar">
   </a>
 </p>
 
@@ -19,72 +19,72 @@
 
 ---
 
-## â¬‡ï¸ Download
+## ⬇️ Download
 
-**[Â» Baixar (ConfigCelular-Setup.zip) Â«](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip)**
+**[» Baixar (ConfigCelular-Setup.zip) «](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip)**
 
 Depois de baixar:
-1. **Extraia o .zip** â€” quando pedir **senha, digite:** `config`
-2. Execute o **ConfigCelular-Setup.exe** que estÃ¡ dentro.
+1. **Extraia o .zip** — quando pedir **senha, digite:** `config`
+2. Execute o **ConfigCelular-Setup.exe** que está dentro.
 
-> ðŸ”’ **Por que o .zip tem senha?** A senha (`config`) impede que o navegador/antivÃ­rus "escaneiem" o instalador e mostrem um **falso alerta de vÃ­rus** no download. **NÃ£o hÃ¡ vÃ­rus** â€” Ã© sÃ³ o instalador do programa.
+> 🔒 **Por que o .zip tem senha?** A senha (`config`) impede que o navegador/antivírus "escaneiem" o instalador e mostrem um **falso alerta de vírus** no download. **Não há vírus** — é só o instalador do programa.
 
-Ou veja todas as versÃµes na pÃ¡gina de **[Releases](https://github.com/satoshigynn/config-celular/releases)**.
+Ou veja todas as versões na página de **[Releases](https://github.com/satoshigynn/config-celular/releases)**.
 
-> Ã‰ um instalador Ãºnico e autossuficiente: jÃ¡ vem com o **ADB** e o **Node** embutidos. NÃ£o precisa instalar mais nada.
+> É um instalador único e autossuficiente: já vem com o **ADB** e o **Node** embutidos. Não precisa instalar mais nada.
 >
-> **Aviso do Windows ao abrir:** se aparecer *"O Windows protegeu o seu PC"*, clique em **"Mais informaÃ§Ãµes" â†’ "Executar assim mesmo"** (o programa nÃ£o Ã© assinado, mas nÃ£o tem vÃ­rus).
+> **Aviso do Windows ao abrir:** se aparecer *"O Windows protegeu o seu PC"*, clique em **"Mais informações" → "Executar assim mesmo"** (o programa não é assinado, mas não tem vírus).
 
 ---
 
-## âœ… Requisitos
+## ✅ Requisitos
 
 - **PC com Windows** (10 ou 11).
-- **Cabo USB de dados** (nÃ£o serve cabo sÃ³ de carga).
-- Celular **Android** com a **DepuraÃ§Ã£o USB** ligada.
+- **Cabo USB de dados** (não serve cabo só de carga).
+- Celular **Android** com a **Depuração USB** ligada.
 
 ---
 
-## ðŸš€ Como usar
+## 🚀 Como usar
 
-### 1) No celular â€” ligue a DepuraÃ§Ã£o USB
-- **ConfiguraÃ§Ãµes â†’ Sobre o telefone â†’** toque **7 vezes** em *"NÃºmero da versÃ£o"* (ativa as OpÃ§Ãµes do desenvolvedor).
-- **OpÃ§Ãµes do desenvolvedor â†’** ligue **"DepuraÃ§Ã£o USB"**.
+### 1) No celular — ligue a Depuração USB
+- **Configurações → Sobre o telefone →** toque **7 vezes** em *"Número da versão"* (ativa as Opções do desenvolvedor).
+- **Opções do desenvolvedor →** ligue **"Depuração USB"**.
 - Conecte o cabo USB e, no popup do celular, toque em **Permitir** (marque *"Sempre permitir deste computador"*).
 
-### 2) No PC â€” instale e abra
-- Rode o **ConfigCelular-Setup.exe** e conclua a instalaÃ§Ã£o.
-- Abra o atalho **"Config Celular"** (Ãrea de Trabalho). O painel abre no navegador em `http://localhost:8787`.
+### 2) No PC — instale e abra
+- Rode o **ConfigCelular-Setup.exe** e conclua a instalação.
+- Abra o atalho **"Config Celular"** (Área de Trabalho). O painel abre no navegador em `http://localhost:8787`.
 
 ### 3) No painel
-- Confira o status do celular no topo: ðŸŸ¢ verde = pronto para usar.
+- Confira o status do celular no topo: 🟢 verde = pronto para usar.
 - Escolha as etapas (ou um perfil pronto) e clique em **Configurar celular**.
 
 ---
 
-## âœ¨ Funcionalidades
+## ✨ Funcionalidades
 
-- **Configurar** â€” debloat (remover apps de fÃ¡brica/lixo), congelar serviÃ§os, instalar APKs (WhatsApp, Telegram, Islandâ€¦), Island + clones, tema escuro, e perfis prontos (Completo / Celular cru / SÃ³ apps).
-- **ðŸ“± Gerenciar apps** â€” instalar, reinstalar, limpar dados e desinstalar apps â€” **por app ou em lote**.
-- **ðŸ›  AvanÃ§ado** â€” diagnÃ³stico visual (bateria/armazenamento/RAM), escanear e gerenciar apps do aparelho, permissÃµes, e editor das listas.
-- **ðŸ“¸ Tela ao vivo** â€” espelha a tela do celular no painel, ao vivo, com download de print.
-- **â¬† AtualizaÃ§Ã£o pela nuvem** â€” o prÃ³prio painel se atualiza (baixa sÃ³ o que muda), com aviso automÃ¡tico de nova versÃ£o.
-
----
-
-## ðŸ”’ Privacidade
-
-Tudo roda **localmente** no seu PC (o celular fica no cabo). Nada Ã© enviado para a internet, exceto o download de APKs oficiais e das atualizaÃ§Ãµes do prÃ³prio programa quando vocÃª pede.
+- **Configurar** — debloat (remover apps de fábrica/lixo), congelar serviços, instalar APKs (WhatsApp, Telegram, Island…), Island + clones, tema escuro, e perfis prontos (Completo / Celular cru / Só apps).
+- **📱 Gerenciar apps** — instalar, reinstalar, limpar dados e desinstalar apps — **por app ou em lote**.
+- **🛠 Avançado** — diagnóstico visual (bateria/armazenamento/RAM), escanear e gerenciar apps do aparelho, permissões, e editor das listas.
+- **📸 Tela ao vivo** — espelha a tela do celular no painel, ao vivo, com download de print.
+- **⬆ Atualização pela nuvem** — o próprio painel se atualiza (baixa só o que muda), com aviso automático de nova versão.
 
 ---
 
-## ðŸ†˜ Se o celular nÃ£o for detectado
+## 🔒 Privacidade
 
-- Confirme a **DepuraÃ§Ã£o USB** ligada e o popup **"Permitir"** autorizado.
+Tudo roda **localmente** no seu PC (o celular fica no cabo). Nada é enviado para a internet, exceto o download de APKs oficiais e das atualizações do próprio programa quando você pede.
+
+---
+
+## 🆘 Se o celular não for detectado
+
+- Confirme a **Depuração USB** ligada e o popup **"Permitir"** autorizado.
 - Troque o **cabo/porta USB** (use cabo de **dados**).
 - Status *"unauthorized"* = falta tocar em **Permitir** no celular.
 - Alguns PCs precisam do **driver USB** do fabricante (realme/Oppo/Xiaomi).
 
 ---
 
-<sub>Ferramenta de uso local. A pasta `publicar/` deste repositÃ³rio contÃ©m os arquivos usados pela atualizaÃ§Ã£o automÃ¡tica do painel.</sub>
+<sub>Ferramenta de uso local. A pasta `publicar/` deste repositório contém os arquivos usados pela atualização automática do painel.</sub>
