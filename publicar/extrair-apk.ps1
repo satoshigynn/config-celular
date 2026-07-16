@@ -1,4 +1,4 @@
-<#
+﻿<#
 ================================================================
   extrair-apk.ps1  -  Extrai o APK de UM app instalado no celular
                       para a pasta .\apks (single -> .apk; split -> bundle)

@@ -1,4 +1,4 @@
-<#
+﻿<#
   restaurar.ps1 — restaura os apps removidos pelo debloat NESTE aparelho.
   Le logs\<serial>-removidos.txt e reinstala cada pacote (install-existing).
   (Funciona porque o debloat usou 'pm uninstall -k --user 0', mantendo o app no firmware.)

@@ -1,4 +1,4 @@
-<#
+﻿<#
 ================================================================
   clones-cloneapp.ps1  -  Cria/remove clones no app "Clone App"
                           (com.pengyou.cloneapp) via automacao de UI

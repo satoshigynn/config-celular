@@ -42,7 +42,42 @@ const ADB = (function(){
   return path.join(process.env.USERPROFILE || '', 'platform-tools', 'adb.exe');
 })();
 
-function getSerial(cb){ const p=spawn(ADB,['get-serialno']); let o=''; p.stdout.on('data',d=>o+=d); p.on('close',()=>cb((o.trim()||'desconhecido').replace(/[^A-Za-z0-9_.-]/g,'_'))); p.on('error',()=>cb('desconhecido')); }
+// ---- Aparelho-alvo (evita "more than one device/emulator" com 2+ celulares) ----
+// Fixa o alvo via a variavel de ambiente ANDROID_SERIAL, que o adb respeita em TODO
+// comando. Como os spawns (adb e powershell) herdam process.env, definir aqui faz o
+// setup-celular.ps1 e os demais scripts operarem so no aparelho escolhido.
+let selectedSerial = '';
+function setTarget(serial){
+  selectedSerial = serial || '';
+  if (selectedSerial) process.env.ANDROID_SERIAL = selectedSerial;
+  else delete process.env.ANDROID_SERIAL;
+}
+// lista os aparelhos conectados: [{serial, state, model}]
+function deviceList(cb){
+  const p = spawn(ADB, ['devices', '-l']); let o = '';
+  p.stdout.on('data', d => o += d); p.stderr.on('data', d => o += d);
+  p.on('close', () => {
+    const list = [];
+    o.split(/\r?\n/).slice(1).forEach(l => {
+      const m = l.match(/^(\S+)\s+(device|offline|unauthorized|no permissions)\b/);
+      if (m) { const md = (l.match(/model:(\S+)/) || [])[1] || ''; list.push({ serial: m[1], state: m[2], model: md }); }
+    });
+    cb(list);
+  });
+  p.on('error', () => cb([]));
+}
+// escolhe o alvo automaticamente quando ha exatamente 1 online; mantem a escolha
+// manual se ela ainda estiver online. Devolve a lista para o front decidir/mostrar.
+function resolveTarget(cb){
+  deviceList(list => {
+    const online = list.filter(d => d.state === 'device');
+    if (selectedSerial && !online.some(d => d.serial === selectedSerial)) setTarget('');   // alvo sumiu
+    if (!selectedSerial && online.length === 1) setTarget(online[0].serial);               // auto: unico
+    cb(list, online);
+  });
+}
+
+function getSerial(cb){ if(selectedSerial){ return cb(selectedSerial.replace(/[^A-Za-z0-9_.-]/g,'_')); } const p=spawn(ADB,['get-serialno']); let o=''; p.stdout.on('data',d=>o+=d); p.on('close',()=>cb((o.trim()||'desconhecido').replace(/[^A-Za-z0-9_.-]/g,'_'))); p.on('error',()=>cb('desconhecido')); }
 function readBody(req,cb){ let b=''; req.on('data',d=>b+=d); req.on('end',()=>cb(b)); }
 // roda um .ps1 transmitindo via SSE
 function streamPs(res, req, psFile, extraArgs, firstLine){
@@ -61,8 +96,8 @@ function streamPs(res, req, psFile, extraArgs, firstLine){
 
 // flags validas que o front-end pode pedir para PULAR uma etapa
 const VALID_SKIP = new Set([
-  'SkipDebloat','SkipServices','SkipApks','SkipBusiness',
-  'SkipIsland','SkipTheme','SkipNativeClone','SkipSuggestions'
+  'SkipDebloat','SkipApks','SkipBusiness',
+  'SkipIsland','SkipTheme','SkipSpeed','SkipDisplay','SkipNativeClone','SkipSuggestions','SkipPerms','SkipBattery'
 ]);
 
 function cors(res){ res.setHeader('Access-Control-Allow-Origin', '*'); }
@@ -117,25 +152,25 @@ const server = http.createServer((req, res) => {
 
   // ---- status do celular ----
   if (u.pathname === '/api/device') {
-    const p = spawn(ADB, ['devices', '-l']);
-    let out = '';
-    p.stdout.on('data', d => out += d);
-    p.stderr.on('data', d => out += d);
-    p.on('close', () => {
-      let status = 'nenhum', serial = '', model = '';
-      const lines = out.split(/\r?\n/).slice(1);
-      for (const l of lines) {
-        if (/\bunauthorized\b/.test(l)) { status = 'unauthorized'; serial = l.split(/\s+/)[0]; }
-        else if (/\bdevice\b/.test(l)) {
-          status = 'ok'; serial = l.split(/\s+/)[0];
-          const m = l.match(/model:(\S+)/); if (m) model = m[1];
-        }
-      }
-      if (status !== 'ok') {
-        send(res, 200, 'application/json', JSON.stringify({ status, serial, model }));
+    resolveTarget((list, online) => {
+      const devices = list.map(d => ({ serial: d.serial, state: d.state, model: d.model }));
+      // nenhum aparelho online
+      if (!online.length) {
+        const un = list.find(d => d.state === 'unauthorized');
+        send(res, 200, 'application/json', JSON.stringify({
+          status: un ? 'unauthorized' : 'nenhum', serial: un ? un.serial : '', model: '',
+          devices, selected: '', multi: false
+        }));
         return;
       }
-      // info extra: Android, ROM, bateria, armazenamento, RAM
+      // 2+ online sem alvo escolhido: pede para o usuario selecionar qual configurar
+      if (online.length > 1 && !selectedSerial) {
+        send(res, 200, 'application/json', JSON.stringify({ status: 'multi', devices, selected: '', multi: true }));
+        return;
+      }
+      const target = online.find(d => d.serial === selectedSerial) || online[0];
+      const serial = target.serial, model = target.model, multi = online.length > 1;
+      // info extra do ALVO (ANDROID_SERIAL ja fixa o aparelho): Android, ROM, bateria, armazenamento, RAM
       const cmd = 'echo A=$(getprop ro.build.version.release); echo R=$(getprop ro.build.display.id); dumpsys battery | grep -m1 level; echo D=$(df /data | tail -1); grep -m1 MemTotal /proc/meminfo';
       const q = spawn(ADB, ['shell', cmd]);
       let o2 = '';
@@ -152,12 +187,24 @@ const server = http.createServer((req, res) => {
         const rm = o2.match(/MemTotal:\s*(\d+)/);
         if (rm) ram = gb(+rm[1]) + ' GB';
         send(res, 200, 'application/json',
-          JSON.stringify({ status, serial, model, android, rom, battery, storage, ram }));
+          JSON.stringify({ status: 'ok', serial, model, android, rom, battery, storage, ram, devices, selected: serial, multi }));
       });
-      q.on('error', () => send(res, 200, 'application/json', JSON.stringify({ status, serial, model })));
+      q.on('error', () => send(res, 200, 'application/json', JSON.stringify({ status: 'ok', serial, model, devices, selected: serial, multi })));
     });
-    p.on('error', () => send(res, 200, 'application/json',
-      JSON.stringify({ status: 'sem-adb', serial: '', model: '' })));
+    return;
+  }
+
+  // ---- escolher qual aparelho configurar (quando ha 2+ conectados) ----
+  if (u.pathname === '/api/select-device') {
+    const serial = u.searchParams.get('serial') || '';
+    if (serial && !/^[A-Za-z0-9_.:-]+$/.test(serial)) { send(res, 400, 'application/json', JSON.stringify({ ok: false, err: 'serial invalido' })); return; }
+    deviceList(list => {
+      if (serial && !list.some(d => d.serial === serial && d.state === 'device')) {
+        send(res, 400, 'application/json', JSON.stringify({ ok: false, err: 'aparelho nao esta online' })); return;
+      }
+      setTarget(serial);
+      send(res, 200, 'application/json', JSON.stringify({ ok: true, selected: selectedSerial }));
+    });
     return;
   }
 
@@ -218,6 +265,8 @@ const server = http.createServer((req, res) => {
       const ev = (line) => { res.write(`data: ${line}\n\n`); if (logStream) { try { logStream.write(line + '\n'); } catch (_) {} } };
       const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', SCRIPT];
       for (const s of skips) args.push('-' + s);
+      // "Brilho e tela" NAO faz parte do setup: e aplicado a parte pelo card (/api/display)
+      if (!skips.includes('SkipDisplay')) args.push('-SkipDisplay');
       if (dry) args.push('-DryRun');
       ev('>> Iniciando configuracao' + (dry ? ' (SIMULACAO / dry-run)' : '') + '...');
       ev('>> Aparelho: ' + serial);
@@ -229,6 +278,27 @@ const server = http.createServer((req, res) => {
       p.on('error', (e) => { ev('[erro] ' + e.message); ev('__DONE__ 1'); if (logStream) logStream.end(); res.end(); });
       req.on('close', () => { try { p.kill(); } catch (_) {} });
     });
+    return;
+  }
+
+  // ---- aplicar Brilho e tela na hora (sem rodar o setup inteiro) ----
+  if (u.pathname === '/api/display') {
+    const bri = parseInt(u.searchParams.get('bright'), 10);
+    const adp = u.searchParams.get('adaptive');
+    const tmo = parseInt(u.searchParams.get('timeout'), 10);
+    const cmds = [];
+    if (adp === '0' || adp === '1') cmds.push('settings put system screen_brightness_mode ' + adp);
+    if (adp !== '1' && Number.isInteger(bri) && bri >= 0 && bri <= 255) cmds.push('settings put system screen_brightness ' + bri);
+    if (Number.isInteger(tmo) && tmo > 0 && tmo <= 2147483647) cmds.push('settings put system screen_off_timeout ' + tmo);
+    if (!cmds.length) { send(res, 400, 'application/json', JSON.stringify({ ok: false, err: 'parametros invalidos' })); return; }
+    cmds.push('echo M=$(settings get system screen_brightness_mode) B=$(settings get system screen_brightness) T=$(settings get system screen_off_timeout)');
+    const p = spawn(ADB, ['shell', cmds.join('; ')]); let o = '';
+    p.stdout.on('data', d => o += d); p.stderr.on('data', d => o += d);
+    p.on('close', () => {
+      const m = (o.match(/M=(\S+)/) || [])[1] || '', b = (o.match(/B=(\S+)/) || [])[1] || '', t = (o.match(/T=(\S+)/) || [])[1] || '';
+      send(res, 200, 'application/json', JSON.stringify({ ok: true, mode: m, brightness: b, timeout: t }));
+    });
+    p.on('error', e => send(res, 200, 'application/json', JSON.stringify({ ok: false, err: e.message })));
     return;
   }
 
@@ -533,6 +603,31 @@ const server = http.createServer((req, res) => {
     const cmd = `PROBE=$(pm ${action} ${pkg} android.permission.CAMERA 2>&1); case "$PROBE" in *RUNTIME_PERMISSIONS*) echo "[!] ADB sem permissao p/ alterar permissoes neste aparelho. Xiaomi/MIUI: ligue 'Depuracao USB (Config. de seguranca)' nas Opcoes do desenvolvedor e tente de novo.";; *) ${loop};; esac`;
     const proc = spawn(ADB, ['shell', cmd]);
     proc.stdout.on('data', b => b.toString('utf8').split(/\r?\n/).forEach(l => { if (l !== '') ev(l); }));
+    proc.on('close', c => { ev('__DONE__ ' + c); res.end(); });
+    proc.on('error', e => { ev('[erro] ' + e.message); ev('__DONE__ 1'); res.end(); });
+    req.on('close', () => { try { proc.kill(); } catch (_) {} });
+    return;
+  }
+
+  // ---- conceder as permissoes comuns a TODOS os apps de uma vez (stream SSE) ----
+  // (terceiros por padrao; scope=all inclui apps de sistema)
+  if (u.pathname === '/api/perms-all') {
+    const scope = u.searchParams.get('scope') === 'all' ? '' : '-3';
+    const PERMS = ['CAMERA', 'RECORD_AUDIO', 'READ_CONTACTS', 'WRITE_CONTACTS', 'ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION', 'ACCESS_MEDIA_LOCATION', 'READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE', 'READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_PHONE_STATE', 'READ_PHONE_NUMBERS', 'CALL_PHONE', 'READ_CALL_LOG', 'SEND_SMS', 'READ_SMS', 'RECEIVE_SMS', 'POST_NOTIFICATIONS', 'NEARBY_WIFI_DEVICES', 'BLUETOOTH_CONNECT', 'BLUETOOTH_SCAN', 'GET_ACCOUNTS', 'ACTIVITY_RECOGNITION', 'BODY_SENSORS'];
+    cors(res);
+    res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+    const ev = l => res.write(`data: ${l}\n\n`);
+    ev('>> Concedendo permissoes comuns a todos os apps' + (scope === '' ? ' (todos)' : ' (terceiros)') + '...');
+    const permList = PERMS.join(' ');
+    // itera TODOS os perfis (user 0 = principal; users >0 = clones do Island e clone nativo
+    // do realme) e concede as permissoes de cada app EM CADA perfil (pm grant --user).
+    // pm grant so vale p/ permissoes que o app declara (as demais falham em silencio).
+    const inner = `N=0; for u in $(pm list users | grep UserInfo | sed 's/[^0-9]*\\([0-9][0-9]*\\).*/\\1/'); do for p in $(pm list packages ${scope} --user $u | sed 's/^package://'); do for perm in ${permList}; do pm grant --user $u "$p" android.permission.$perm >/dev/null 2>&1; done; N=$((N+1)); if [ "$u" = "0" ]; then echo "[ok] $p"; else echo "[ok] (clone user $u) $p"; fi; done; done; echo ">> Concluido: $N app(s) em todos os perfis (principal + clones Island/nativo)."`;
+    // probe: alguns ROMs (ColorOS/realme, MIUI) bloqueiam pm grant sem "Depuracao USB (Config. de seguranca)"
+    const cmd = `FIRST=$(pm list packages ${scope} | sed -n '1s/^package://p'); PROBE=$(pm grant "$FIRST" android.permission.CAMERA 2>&1); case "$PROBE" in *RUNTIME_PERMISSIONS*) echo "[!] O aparelho bloqueou a alteracao de permissoes via ADB. realme/ColorOS: ligue 'Depuracao USB (Config. de seguranca)' nas Opcoes do desenvolvedor e tente de novo.";; *) ${inner};; esac`;
+    const proc = spawn(ADB, ['shell', cmd]);
+    proc.stdout.on('data', b => b.toString('utf8').split(/\r?\n/).forEach(l => { if (l !== '') ev(l); }));
+    proc.stderr.on('data', b => b.toString('utf8').split(/\r?\n/).forEach(l => { if (l !== '') ev('[!] ' + l); }));
     proc.on('close', c => { ev('__DONE__ ' + c); res.end(); });
     proc.on('error', e => { ev('[erro] ' + e.message); ev('__DONE__ 1'); res.end(); });
     req.on('close', () => { try { proc.kill(); } catch (_) {} });

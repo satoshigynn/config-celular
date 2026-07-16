@@ -1,39 +1,39 @@
 {
-    "versao":  "4.7",
-    "data":  "2026-07-14",
-    "notas":  "Novo botao \u0027Atualizar tudo\u0027: 1 clique atualiza o programa e ja baixa os APKs mais recentes (WhatsApp, WhatsApp Business, Telegram, Island).",
+    "versao":  "5.0",
+    "data":  "2026-07-16",
+    "notas":  "Clonador nativo agora cobre Xiaomi (Apps duplos) e Samsung (Mensageiro Duplo), alem do realme. Seletor de aparelho com 2+ celulares. Novas etapas: Brilho/tela, Deixar mais rapido, Permitir tudo (inclui clones), Manter apps vivos. Correcoes: encoding de acentos, servico mcs (nao reinicia mais no realme), WhatsApp universal 32/64-bit.",
     "arquivos":  [
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "4d1af130ba6fee95dbafeea5187fe55f024cf113867ee72756be9633250801e0"
+                         "sha256":  "7aa0d5fa7f7d4f344bc6b0f33852998380f8e04068565f7148b72b3175f825a9"
                      },
                      {
                          "caminho":  "atualizar-apks.ps1",
-                         "sha256":  "5071041c782a90036779e371554aefc14f91cbb58fd341c54b2e66a4df921033"
+                         "sha256":  "dff3c4127f762d87965c09de5aeb8ab264b8e686f46481282e4025ce436634f0"
                      },
                      {
                          "caminho":  "restaurar.ps1",
-                         "sha256":  "9fadadb5016eba8c73b7dfac9617a9176f4dc1c8335c52c1c08cb3e388965313"
+                         "sha256":  "0b9249d3874c88430a38eb0899d7ee15b0ab7c6e99586b17485463a678bad3f5"
                      },
                      {
                          "caminho":  "gerenciar-app.ps1",
-                         "sha256":  "b4f383817d359e37e5eb49388cba91fb798f19e7b68d00043147ffa8076bdf0e"
+                         "sha256":  "abc855cd2fcdbb22ba2496960d412fe871dc10110c5c87f7ca56155c62db8011"
                      },
                      {
                          "caminho":  "extrair-apk.ps1",
-                         "sha256":  "4c0ffa128b42b1ecd493f228fe6bfe5199c6b56fdea9dcda728827a511a96544"
+                         "sha256":  "3ec82a2232d179103151ec6f4a46e920b822c4881fc3d5cb28e45227dd6a38ec"
                      },
                      {
                          "caminho":  "clones-cloneapp.ps1",
-                         "sha256":  "95d88d762778d81b217f066c47111a36a8e7fef57dfe7f240195d7b774c2b1e9"
+                         "sha256":  "0d7e0051286afbf915bc02e79fba19bebdd21c8c1ab3e237c1d71c55d72e64db"
                      },
                      {
                          "caminho":  "painel/server.cjs",
-                         "sha256":  "f73eb66b073f1a36e33a0a3911e612522e8b4c9cbb26fe228515c4eda817770a"
+                         "sha256":  "9f4ed330734b9604459bd2fa7555fb9443e2e3da4901f726dd7e46bf040fc940"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "ebfc4ccc0e71aa8f0418aae4cd717bec9959a5205f26e52d63d9499f590614d4"
+                         "sha256":  "16d9a2a127f87e8cc445cf92a92968528cf426288f5668b54642db6682cf3aa7"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",

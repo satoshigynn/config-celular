@@ -1,29 +1,41 @@
 {
-    "geradoEm":  "2026-07-14",
+    "geradoEm":  "2026-07-16",
     "apks":  [
                  {
                      "arquivo":  "WhatsApp.apk",
-                     "versionName":  "2.26.24.80",
-                     "sha256":  "e72e9e1aa6aa52ecf93d1d5d14bb3cc95938d864da1149076ae7dd0bbe52e382",
+                     "versionName":  "2.26.25.81",
+                     "sha256":  "ecf1e31a357e82c39776c5e95b2427dc0d286b7097fda7312270fec2af736570",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsApp.apk"
                  },
                  {
                      "arquivo":  "WhatsAppBusiness.apk",
-                     "versionName":  "2.26.24.79",
+                     "versionName":  "",
                      "sha256":  "396a1cb6da3dc832d59077a258eda89efb81b52d2373e78e3574c6fa407a21f5",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsAppBusiness.apk"
                  },
                  {
                      "arquivo":  "Telegram.apk",
-                     "versionName":  "12.8.3",
+                     "versionName":  "",
                      "sha256":  "7e56bb046b674ac0440f49d2a0e072365566b3f48470e2c1e7ca0163242dd503",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Telegram.apk"
                  },
                  {
                      "arquivo":  "Island.apk",
-                     "versionName":  "6.2.1",
+                     "versionName":  "",
                      "sha256":  "374e5d23c6e64b71235ad7c9bd7060b7119b71e3bd47b9b216d87c222170f611",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Island.apk"
+                 },
+                 {
+                     "arquivo":  "FacebookLite.apk",
+                     "versionName":  "516.0.0.10.103",
+                     "sha256":  "e84beb6d095779fd5b85bf68653b21e8995e022b5270240db1048f3b9d7903b0",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/FacebookLite.apk"
+                 },
+                 {
+                     "arquivo":  "MetaAds.apk",
+                     "versionName":  "483.0.0.47.106",
+                     "sha256":  "43e8933332f9e984064355420431cec8d7378b67e205a6a93e72bc731c1be4d4",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/MetaAds.apk"
                  }
              ]
 }

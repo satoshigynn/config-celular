@@ -1,4 +1,4 @@
-<#
+﻿<#
   atualizar-apks.ps1 — baixa os APKs OFICIAIS mais recentes para a pasta .\apks
    - WhatsApp   : whatsapp.com (oficial)
    - Telegram   : telegram.org (oficial)

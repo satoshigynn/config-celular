@@ -1,4 +1,4 @@
-<#
+﻿<#
 ================================================================
   setup-celular.ps1  -  Automacao de limpeza + apps (Realme/ColorOS)
 ================================================================
@@ -25,8 +25,7 @@
 
   Parametros opcionais:
      -DryRun          nao altera nada; so mostra o que faria (RECOMENDADO 1a vez)
-     -SkipDebloat     nao remove bloatware
-     -SkipServices    nao congela servicos
+     -SkipDebloat     nao remove bloatware (nem a telemetria)
      -SkipApks        nao instala os APKs locais
      -SkipBusiness    nao instala o WhatsApp Business pela App Market
      -SkipIsland      nao cria perfil de trabalho nem clona apps
@@ -37,13 +36,19 @@
 #>
 param(
   [switch]$SkipDebloat,
-  [switch]$SkipServices,
   [switch]$SkipApks,
   [switch]$SkipBusiness,
   [switch]$SkipIsland,
   [switch]$SkipTheme,
+  [switch]$SkipDisplay,
   [switch]$SkipNativeClone,
   [switch]$SkipSuggestions,
+  [switch]$SkipPerms,
+  [switch]$SkipSpeed,             # desativar animacoes (mais rapido)
+  [switch]$SkipBattery,           # ignorar economia de bateria (apps nao param)
+  [int]$Brightness = -1,          # 0..255 (-1 = padrao: maximo 255)
+  [int]$AdaptiveBrightness = -1,  # 0=off, 1=on (-1 = padrao: off)
+  [int]$ScreenTimeout = -1,       # apagar tela em ms (-1 = padrao: 300000 = 5 min)
   [switch]$DryRun
 )
 
@@ -78,13 +83,23 @@ $Adb = Get-Adb
 function adbx { & $Adb @args }
 
 # ---------- 2. Esperar celular autorizado ----------
+# Respeita o alvo fixado em $env:ANDROID_SERIAL (o painel passa o aparelho escolhido).
+# Se HA um alvo fixado, ESPERA por ele e NUNCA troca por outro celular (evita configurar
+# o aparelho errado se o alvo piscar). Sem alvo, pega o 1o online e o fixa (evita o erro
+# "more than one device" quando ha 2+ conectados).
 function Wait-Device {
   Write-Host "Aguardando celular (Depuracao USB + autorizar este PC)..." -ForegroundColor Cyan
+  $want = $env:ANDROID_SERIAL
   for($i=0; $i -lt 120; $i++){
-    $line = (& $Adb devices) | Select-String "\tdevice$"
-    if($line){
-      $serial = ($line -split "\t")[0]
-      Write-Host "Celular conectado: $serial" -ForegroundColor Green
+    $online = @((& $Adb devices) | Select-String "\tdevice$" | ForEach-Object { ($_ -split "\t")[0].Trim() } | Where-Object { $_ })
+    if($want){
+      if($online -contains $want){ Write-Host "Celular conectado: $want" -ForegroundColor Green; return }
+      if(($i % 5) -eq 0){ Write-Host ("  Aguardando o aparelho fixado ({0}) reconectar..." -f $want) -ForegroundColor Yellow }
+    }
+    elseif($online.Count -gt 0){
+      $env:ANDROID_SERIAL = $online[0]
+      if($online.Count -gt 1){ Write-Host ("  ({0} celulares conectados; configurando SO {1}. Escolha no painel ou desconecte os outros.)" -f $online.Count, $online[0]) -ForegroundColor Yellow }
+      Write-Host ("Celular conectado: {0}" -f $online[0]) -ForegroundColor Green
       return
     }
     if((& $Adb devices) -match "unauthorized"){
@@ -92,7 +107,7 @@ function Wait-Device {
     }
     Start-Sleep -Seconds 2
   }
-  throw "Nenhum celular autorizado apareceu."
+  if($want){ throw ("O aparelho fixado ($want) nao reconectou a tempo.") } else { throw "Nenhum celular autorizado apareceu." }
 }
 Wait-Device
 # mantem a tela ligada durante a automacao (evita central travada quando a tela dorme)
@@ -100,14 +115,37 @@ if(-not $DryRun){ & $Adb shell svc power stayon true 2>$null | Out-Null }
 # Detecta se e' realme/ColorOS (App Market, OTA Oppo). As etapas 6/9/10 sao exclusivas dele.
 $pkgsAll = (& $Adb shell pm list packages) 2>$null
 $IsRealme = ($pkgsAll -match 'com\.oppo\.ota') -or ($pkgsAll -match 'com\.heytap\.market') -or ($pkgsAll -match 'com\.oplus\.')
-if(-not $IsRealme){ Write-Host "  (Aparelho nao-realme detectado: etapas exclusivas do realme serao puladas)" -ForegroundColor DarkGray }
+# Xiaomi/MIUI/HyperOS: clonador proprio "Apps duplos" (XSpace) via com.miui.securitycore
+$IsXiaomi = ($pkgsAll -match 'com\.miui\.securitycore')
+# Samsung/One UI: clonador "Mensageiro Duplo" (Dual Messenger) via com.samsung.android.da.daagent
+$IsSamsung = ($pkgsAll -match 'com\.samsung\.android\.da\.daagent')
+$HasClone = $IsRealme -or $IsXiaomi -or $IsSamsung
+if(-not $HasClone){ Write-Host "  (Sem clonador nativo suportado: essa etapa e ajustes de launcher serao pulados)" -ForegroundColor DarkGray }
+elseif($IsXiaomi){ Write-Host "  (Xiaomi/MIUI detectado: clonador nativo usara 'Apps duplos')" -ForegroundColor DarkGray }
+elseif($IsSamsung){ Write-Host "  (Samsung/One UI detectado: clonador nativo usara 'Mensageiro Duplo')" -ForegroundColor DarkGray }
 
 # ---------- helpers de UI (uiautomator) ----------
 function Get-UI {
-  & $Adb shell uiautomator dump /sdcard/ui.xml | Out-Null
-  & $Adb pull /sdcard/ui.xml "$env:TEMP\ui.xml" | Out-Null
-  & $Adb shell rm /sdcard/ui.xml | Out-Null
-  return [System.IO.File]::ReadAllText("$env:TEMP\ui.xml",[System.Text.Encoding]::UTF8)
+  # o 'uiautomator dump' falha de forma intermitente no ColorOS ("null root node
+  # returned by UiTestAutomationBridge"), geralmente durante animacoes/transicoes.
+  # Nesse caso o /sdcard/ui.xml NAO e criado. Sem tratar, o codigo antigo lia um XML
+  # velho do cache (decisao errada). Aqui: limpa o cache, detecta a falha e re-tenta.
+  $local = Join-Path $env:TEMP "ui.xml"
+  for($try=0; $try -lt 5; $try++){
+    Remove-Item $local -Force -ErrorAction SilentlyContinue
+    & $Adb shell rm -f /sdcard/ui.xml 2>$null | Out-Null
+    $dump = (& $Adb shell uiautomator dump /sdcard/ui.xml 2>&1 | Out-String)
+    if($dump -match 'null root node|ERROR:|could not get idle|Killed'){ Start-Sleep -Milliseconds 800; continue }
+    & $Adb pull /sdcard/ui.xml $local 2>$null | Out-Null
+    & $Adb shell rm -f /sdcard/ui.xml 2>$null | Out-Null
+    if(Test-Path $local){
+      $xml = ''
+      try { $xml = [System.IO.File]::ReadAllText($local,[System.Text.Encoding]::UTF8) } catch { $xml = '' }
+      if($xml.Length -gt 100){ return $xml }
+    }
+    Start-Sleep -Milliseconds 600
+  }
+  return ''
 }
 # acha o centro do node cujo $attr = $val (e tem bounds) e clica
 function Tap-By([string]$xml,[string]$attr,[string]$val,[switch]$contains){
@@ -191,14 +229,15 @@ if(-not $SkipDebloat){
   }
 }
 
-# ================= 4. NEUTRALIZAR SERVICOS (push/telemetria) =================
-# ATENCAO: NAO usar 'pm disable-user' no com.heytap.mcs. DESABILITAR (em vez de
-# remover) esse servico de push causa LOOP DE CRASH/REBOOT em realme/ColorOS.
-# Por isso REMOVEMOS por perfil (pm uninstall -k, reversivel via restaurar.ps1),
-# re-habilitando antes para sair de um estado "desabilitado" que ja esteja em loop.
-$Disable = Cfg 'disableServices' @("com.heytap.mcs","com.nearme.statistics.rom")
-if(-not $SkipServices){
-  Write-Host "`n== Removendo servicos de push/telemetria (com seguranca) ==" -ForegroundColor Cyan
+# ============ 4. TELEMETRIA (removida junto com o debloat) ============
+# Roda como parte do "Remover bloatware" (-SkipDebloat) - nao e mais uma etapa separada.
+# ATENCAO: NAO mexer no com.heytap.mcs. Tanto DESABILITAR quanto REMOVER (mesmo com
+# uninstall -k) esse servico de push causa o realme/ColorOS REINICIAR no meio do
+# setup - o que derruba a conexao e PENDURA o 'adb install' seguinte. Por isso o mcs
+# foi TIRADO da lista. Mantemos apenas a telemetria (com.nearme.statistics.rom).
+$Disable = Cfg 'disableServices' @("com.nearme.statistics.rom")
+if(-not $SkipDebloat){
+  Write-Host "`n== Removendo telemetria (parte da limpeza) ==" -ForegroundColor Cyan
   $serialSvc  = ((& $Adb get-serialno) -join '').Trim()
   $logDirSvc  = Join-Path $ScriptDir "logs"
   if(-not $DryRun){ New-Item -ItemType Directory -Force -Path $logDirSvc | Out-Null }
@@ -375,10 +414,20 @@ function Setup-Island {
   $wp = Get-WorkProfileId
   if($wp -ge 0){ Write-Host "  Perfil de trabalho ja existe (user $wp)." -ForegroundColor Green; return $wp }
   Write-Host "  Abrindo Island e criando o perfil de trabalho..." -ForegroundColor Cyan
+  Write-Host "  (Vou avancar os avisos na tela automaticamente. NAO mexa no celular.)" -ForegroundColor DarkGray
   # garante setup limpo
   & $Adb shell pm clear com.oasisfeng.island 2>$null | Out-Null
   & $Adb shell am start -n com.oasisfeng.island/.MainActivity 2>$null | Out-Null
   Start-Sleep -Seconds 4
+  # botoes que AVANCAM o assistente (Island welcome -> dialogo do sistema -> provisionamento
+  # -> finalizacao). Ordem = prioridade. Cobre PT e EN e variacoes do ColorOS.
+  $advance = @(
+    'Aceitar e continuar','Aceitar e Continuar','Aceito','Concordo','Concordar','Continuar','Avançar','Próximo','Próxima',
+    'Concluir','Concluído','Finalizar','Instalar','Definir','Ativar','Permitir','Começar','Iniciar','Aceitar','OK','Entendi',
+    'Accept & continue','Accept and continue','Accept','Agree','Continue','Next','Done','Finish','Install','Allow','Start','Set up','Got it'
+  )
+  $navIds = @('suw_navbar_next','sud_navbar_next','suw_navbar_more','button_next','next_button','btn_next')
+  $lastLabel = ''
   for($i=0; $i -lt 90; $i++){
     $fg = Get-Foreground
     # finalizou de verdade quando o Island chega na tela principal
@@ -387,16 +436,24 @@ function Setup-Island {
       if($wp -ge 0){ Write-Host "  Perfil de trabalho criado e FINALIZADO (user $wp)." -ForegroundColor Green; return $wp }
     }
     $xml = Get-UI
-    # avanca cada tela conhecida (Island welcome -> sistema -> info -> finalizacao)
-    if(Tap-By $xml "text" "Aceitar e continuar"){ Start-Sleep -Seconds 4; continue }
-    if(Tap-By $xml "text" "Próximo"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "text" "Avançar"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "text" "Concluir"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_next"){ Start-Sleep -Seconds 3; continue }
-    if(Tap-By $xml "resource-id" "com.oasisfeng.island:id/suw_navbar_more"){ Start-Sleep -Seconds 2; continue }
+    $clicked = $false
+    # 1) tenta os botoes por TEXTO (na ordem de prioridade)
+    foreach($t in $advance){
+      if(Tap-By $xml "text" $t){
+        if($t -ne $lastLabel){ Write-Host ("    -> avancei: `"{0}`"" -f $t) -ForegroundColor DarkGray; $lastLabel = $t }
+        $clicked = $true; Start-Sleep -Seconds 3; break
+      }
+    }
+    if($clicked){ continue }
+    # 2) senao, botoes de "proximo" por resource-id (telas do assistente do sistema)
+    foreach($id in $navIds){
+      if(Tap-By $xml "resource-id" ("com.oasisfeng.island:id/" + $id)){ $clicked = $true; Start-Sleep -Seconds 3; break }
+    }
+    if($clicked){ continue }
+    if(($i % 5) -eq 4){ Write-Host "    (aguardando a proxima tela / provisionamento...)" -ForegroundColor DarkGray }
     Start-Sleep -Seconds 3   # provavelmente provisionando: so espera
   }
-  Write-Host "  Nao consegui confirmar o perfil de trabalho - finalize o Island na tela." -ForegroundColor Yellow
+  Write-Host "  Nao consegui confirmar sozinho - finalize o Island na tela do celular (toque em Continuar/Avancar)." -ForegroundColor Yellow
   return (Get-WorkProfileId)
 }
 # clona (install-existing) os apps no perfil de trabalho
@@ -439,18 +496,60 @@ if(-not $SkipTheme){
   }
 }
 
-# ================= 9. CLONADOR NATIVO DO REALME =================
-# Clona via o recurso nativo "Clonador de aplicativo" (Android MANAGE_CLONED_APPS_SETTINGS).
-# Vantagens: aparece direto na Tela inicial pelo launcher do realme (NAO funciona com
-# launcher de terceiros). Limite de 2 apps. Apps suportados aparecem em "Recomendados".
-# nome = texto EXATO na tela do clonador; pkg = pacote (pra checar se ja foi clonado)
+# ================= 8a. VELOCIDADE (desativar animacoes) =================
+# Zera as 3 escalas de animacao (Opcoes do desenvolvedor). A interface responde na
+# hora, dando sensacao de aparelho mais rapido. Reversivel (voltar p/ 1).
+if(-not $SkipSpeed){
+  Write-Host "`n== Deixar o celular mais rapido ==" -ForegroundColor Cyan
+  if($DryRun){ Write-Host "  [seria feito] desativar as animacoes do sistema" -ForegroundColor Yellow }
+  else {
+    & $Adb shell settings put global window_animation_scale 0 2>$null | Out-Null
+    & $Adb shell settings put global transition_animation_scale 0 2>$null | Out-Null
+    & $Adb shell settings put global animator_duration_scale 0 2>$null | Out-Null
+    Write-Host "  Animacoes: [desativadas]" -ForegroundColor Green
+  }
+}
+
+# ================= 8b. BRILHO E APAGAMENTO DA TELA =================
+# Configuravel pelo painel (ou pelos parametros -Brightness/-AdaptiveBrightness/-ScreenTimeout).
+# Padroes (quando nao informado): adaptativo OFF, brilho maximo (255), apagar em 5 min.
+# (escala padrao do Android p/ screen_brightness = 0..255; timeout em milissegundos)
+if(-not $SkipDisplay){
+  $adapt = if($AdaptiveBrightness -ge 0){ $AdaptiveBrightness } else { 0 }
+  $bri   = if($Brightness -ge 0){ [math]::Max(0,[math]::Min(255,$Brightness)) } else { 255 }
+  $to    = if($ScreenTimeout -gt 0){ $ScreenTimeout } else { 300000 }
+  $toMin = [math]::Round($to/60000,1)
+  Write-Host "`n== Brilho e tela ==" -ForegroundColor Cyan
+  if($DryRun){
+    Write-Host ("  [seria feito] adaptativo={0}, brilho={1}/255, apagar em {2} min" -f $(if($adapt -eq 1){'ON'}else{'OFF'}), $bri, $toMin) -ForegroundColor Yellow
+  } else {
+    & $Adb shell settings put system screen_brightness_mode $adapt 2>$null | Out-Null   # 0=manual, 1=adaptativo
+    if($adapt -ne 1){ & $Adb shell settings put system screen_brightness $bri 2>$null | Out-Null }  # so faz sentido no modo manual
+    & $Adb shell settings put system screen_off_timeout $to 2>$null | Out-Null
+    $rMode = ((& $Adb shell settings get system screen_brightness_mode) -join '').Trim()
+    $rBri  = ((& $Adb shell settings get system screen_brightness) -join '').Trim()
+    $rTo   = ((& $Adb shell settings get system screen_off_timeout) -join '').Trim()
+    $rToMin = if($rTo -match '^\d+$'){ [string]([math]::Round([int]$rTo/60000,1)) } else { '?' }
+    Write-Host ("  Brilho adaptativo: {0}" -f $(if($rMode -eq '1'){'[ativado]'}else{'[desativado]'})) -ForegroundColor Green
+    if($adapt -ne 1){ Write-Host ("  Brilho: {0}/255" -f $rBri) -ForegroundColor Green }
+    Write-Host ("  Apagar tela: {0} min" -f $rToMin) -ForegroundColor Green
+  }
+}
+
+# ================= 9. CLONADOR NATIVO (realme ou Xiaomi) =================
+# realme: "Clonador de aplicativo" (Android MANAGE_CLONED_APPS_SETTINGS) - limite de 2 apps,
+#   so com o launcher do realme.
+# Xiaomi/MIUI: "Apps duplos" (XSpace, com.miui.securitycore) - sem limite de 2.
+# Nos dois a tela e uma lista de apps com um Switch por linha, entao a automacao e a mesma.
+# nome = texto EXATO na tela; pkg = pacote (pra checar se ja foi clonado no perfil clone)
 $NativeCloneApps = Cfg 'nativeCloneApps' @(
   @{ name="WhatsApp";          pkg="com.whatsapp" },
   @{ name="WhatsApp Business"; pkg="com.whatsapp.w4b" }
 )
 function Get-CloneUserId {
   $u = (& $Adb shell pm list users) -join "`n"
-  $m = [regex]::Match($u,'UserInfo\{(\d+):\s*cloneUser')
+  # realme = "cloneUser"; Xiaomi = "XSpace" (user 999); Samsung = "DUAL_APP" (user 95)
+  $m = [regex]::Match($u,'UserInfo\{(\d+):\s*(cloneUser|XSpace|DUAL_APP)')
   if($m.Success){ return [int]$m.Groups[1].Value }
   return -1
 }
@@ -477,10 +576,11 @@ function Is-NativeCloned([string]$pkg){
   return (((& $Adb shell pm list packages --user $cu $pkg) 2>$null) -match [regex]::Escape($pkg))
 }
 if(-not $SkipNativeClone){
-  Write-Host "`n== Clonador nativo do realme ==" -ForegroundColor Cyan
-  if(-not $IsRealme){ Write-Host "  [pulado] clonador nativo e' exclusivo do realme/ColorOS." -ForegroundColor DarkGray }
+  Write-Host "`n== Clonador nativo ==" -ForegroundColor Cyan
+  if(-not $HasClone){ Write-Host "  [pulado] sem clonador nativo suportado (realme / Xiaomi / Samsung)." -ForegroundColor DarkGray }
   elseif($DryRun){
-    foreach($a in $NativeCloneApps){ Write-Host ("  [seria clonado nativamente] {0}" -f $a.name) -ForegroundColor Yellow }
+    $via = if($IsXiaomi){ "Apps duplos (Xiaomi)" } elseif($IsSamsung){ "Mensageiro Duplo (Samsung)" } else { "Clonador (realme)" }
+    foreach($a in $NativeCloneApps){ Write-Host ("  [seria clonado via {0}] {1}" -f $via, $a.name) -ForegroundColor Yellow }
   } else {
     # quais ainda faltam clonar?
     $todo = @($NativeCloneApps | Where-Object { -not (Is-NativeCloned $_.pkg) })
@@ -488,13 +588,22 @@ if(-not $SkipNativeClone){
       Write-Host ("  {0,-20} [ja clonado]" -f $a.name) -ForegroundColor Green
     }
     if($todo.Count -gt 0){
-      # pre-requisito: launcher do realme (nao funciona com terceiros)
-      $homeAct = (& $Adb shell cmd package resolve-activity -a android.intent.action.MAIN -c android.intent.category.HOME) -join ' '
-      if($homeAct -notmatch "com.android.launcher3"){
-        Write-Host "  AVISO: launcher atual nao e' o do realme - o clonador pode nao mostrar os icones." -ForegroundColor Yellow
-      }
       $w = ((& $Adb shell wm size) -join ' ') -replace '.*?(\d+)x(\d+).*','$1'; if(-not ($w -as [int])){ $w = 720 }
-      & $Adb shell am start -a android.settings.MANAGE_CLONED_APPS_SETTINGS 2>$null | Out-Null
+      if($IsXiaomi){
+        # Xiaomi: abre "Apps duplos" (XSpace). Sem limite de 2 apps.
+        & $Adb shell am start -n com.miui.securitycore/com.miui.xspace.ui.activity.XSpaceSettingActivity 2>$null | Out-Null
+      } elseif($IsSamsung){
+        # Samsung: "Mensageiro Duplo" (Dual Messenger). Suporta menos apps (ex.: WhatsApp,
+        # Facebook) - WA Business/Telegram podem nao aparecer -> caem em "[nao listado]".
+        & $Adb shell am start -n com.samsung.android.da.daagent/.activity.DualAppActivity 2>$null | Out-Null
+      } else {
+        # realme: precisa do launcher do realme (nao funciona com terceiros)
+        $homeAct = (& $Adb shell cmd package resolve-activity -a android.intent.action.MAIN -c android.intent.category.HOME) -join ' '
+        if($homeAct -notmatch "com.android.launcher3"){
+          Write-Host "  AVISO: launcher atual nao e' o do realme - o clonador pode nao mostrar os icones." -ForegroundColor Yellow
+        }
+        & $Adb shell am start -a android.settings.MANAGE_CLONED_APPS_SETTINGS 2>$null | Out-Null
+      }
       Start-Sleep -Seconds 5
       foreach($a in $todo){
         # a lista "Recomendados" carrega de forma assincrona: tenta ate 6x (re-dump)
@@ -508,14 +617,15 @@ if(-not $SkipNativeClone){
         if($tg.checked){ Write-Host ("  {0,-20} [ja clonado]" -f $a.name) -ForegroundColor Green; continue }
         $tapX = if($tg.x -ge 0){ $tg.x } else { [int]$w - 70 }
         & $Adb shell input tap $tapX $tg.y | Out-Null
-        Start-Sleep -Seconds 7   # aguarda "Ativando..."
-        $ok = Is-NativeCloned $a.pkg
+        # "Ativando..." pode demorar; confirma por ate ~16s em vez de uma espera fixa
+        $ok = $false
+        for($k=0; $k -lt 8; $k++){ Start-Sleep -Seconds 2; if(Is-NativeCloned $a.pkg){ $ok = $true; break } }
         Write-Host ("  {0,-20} {1}" -f $a.name, $(if($ok){"[clonado]"}else{"[verifique na tela]"})) -ForegroundColor $(if($ok){"Green"}else{"Yellow"})
       }
       & $Adb shell input keyevent KEYCODE_HOME 2>$null | Out-Null
     }
     $cu = Get-CloneUserId
-    if($cu -ge 0){ Write-Host ("  (clones nativos no perfil cloneUser = user $cu)") -ForegroundColor DarkGray }
+    if($cu -ge 0){ Write-Host ("  (clones nativos no perfil clone = user $cu)") -ForegroundColor DarkGray }
   }
 }
 
@@ -564,6 +674,66 @@ if(-not $SkipSuggestions){
       Write-Host ("  {0}" -f $(if($rs2 -and $rs2.state -eq 'off'){"[desligado]"}else{"[toquei - verifique na tela]"})) -ForegroundColor Green
     }
     & $Adb shell input keyevent KEYCODE_HOME 2>$null | Out-Null
+  }
+}
+
+# ================= 11. PERMISSOES DOS APPS =================
+# Concede as permissoes comuns (que geram popup) a TODOS os apps de terceiros, em
+# TODOS os perfis (principal + clones do Island + clone nativo). Assim os apps nao
+# ficam pedindo depois. So vale p/ as permissoes que cada app declara.
+$PermsList = @('CAMERA','RECORD_AUDIO','READ_CONTACTS','WRITE_CONTACTS','ACCESS_FINE_LOCATION','ACCESS_COARSE_LOCATION','ACCESS_MEDIA_LOCATION','READ_EXTERNAL_STORAGE','WRITE_EXTERNAL_STORAGE','READ_MEDIA_IMAGES','READ_MEDIA_VIDEO','READ_MEDIA_AUDIO','READ_PHONE_STATE','READ_PHONE_NUMBERS','CALL_PHONE','READ_CALL_LOG','SEND_SMS','READ_SMS','RECEIVE_SMS','POST_NOTIFICATIONS','NEARBY_WIFI_DEVICES','BLUETOOTH_CONNECT','BLUETOOTH_SCAN','GET_ACCOUNTS','ACTIVITY_RECOGNITION','BODY_SENSORS')
+if(-not $SkipPerms){
+  Write-Host "`n== Permissoes dos apps ==" -ForegroundColor Cyan
+  if($DryRun){
+    Write-Host "  [seria feito] conceder permissoes comuns a todos os apps (principal + clones)" -ForegroundColor Yellow
+  } else {
+    # perfis: 0 = principal; >0 = clones (Island, clone nativo)
+    $usersOut = (& $Adb shell pm list users) -join "`n"
+    $users = @([regex]::Matches($usersOut,'UserInfo\{(\d+)') | ForEach-Object { $_.Groups[1].Value })
+    if(-not $users){ $users = @('0') }
+    # probe: alguns realme/ColorOS bloqueiam pm grant via ADB sem "Depuracao USB (Config. de seguranca)"
+    $first = (((& $Adb shell pm list packages -3) | Select-Object -First 1) -replace 'package:','').Trim()
+    $probe = if($first){ (& $Adb shell pm grant $first android.permission.CAMERA) 2>&1 | Out-String } else { '' }
+    if($probe -match 'RUNTIME_PERMISSIONS'){
+      Write-Host "  [!] O aparelho bloqueou a alteracao de permissoes via ADB." -ForegroundColor Yellow
+      Write-Host "      realme/ColorOS: ligue 'Depuracao USB (Config. de seguranca)' nas Opcoes do desenvolvedor e rode de novo." -ForegroundColor Yellow
+    } else {
+      foreach($u in $users){
+        $pkgs = @((& $Adb shell pm list packages -3 --user $u) | ForEach-Object { ($_ -replace 'package:','').Trim() } | Where-Object { $_ })
+        foreach($pk in $pkgs){
+          # concede todas as permissoes deste app numa unica chamada adb (o device ignora as nao declaradas)
+          $loop = ($PermsList | ForEach-Object { "pm grant --user $u $pk android.permission.$_ >/dev/null 2>&1" }) -join '; '
+          & $Adb shell $loop 2>$null | Out-Null
+          $tag = if($u -eq '0'){ '' } else { " (clone user $u)" }
+          Write-Host ("  [ok]{0} {1}" -f $tag, $pk) -ForegroundColor Green
+        }
+      }
+    }
+  }
+}
+
+# ================= 12. MANTER APPS ATIVOS (bateria / segundo plano) =================
+# Tira todos os apps de terceiros da economia de bateria (Doze/whitelist) e libera
+# rodar em segundo plano. Evita que o ColorOS/realme "mate" o WhatsApp e os clones,
+# fazendo eles pararem de receber mensagens quando a tela apaga.
+if(-not $SkipBattery){
+  Write-Host "`n== Manter apps ativos (bateria) ==" -ForegroundColor Cyan
+  if($DryRun){ Write-Host "  [seria feito] ignorar economia de bateria + rodar em 2o plano p/ todos os apps" -ForegroundColor Yellow }
+  else {
+    # perfis (0 = principal; >0 = clones): o appops de 2o plano e por-perfil
+    $usersOut = (& $Adb shell pm list users) -join "`n"
+    $users = @([regex]::Matches($usersOut,'UserInfo\{(\d+)') | ForEach-Object { $_.Groups[1].Value })
+    if(-not $users){ $users = @('0') }
+    $pkgs = @((& $Adb shell pm list packages -3) | ForEach-Object { ($_ -replace 'package:','').Trim() } | Where-Object { $_ })
+    foreach($pk in $pkgs){
+      & $Adb shell dumpsys deviceidle whitelist +$pk 2>$null | Out-Null   # ignora otimizacao de bateria (Doze) - global, cobre todos os perfis
+      foreach($u in $users){
+        & $Adb shell cmd appops set --user $u $pk RUN_IN_BACKGROUND allow 2>$null | Out-Null      # libera 2o plano (por perfil; clones inclusos)
+        & $Adb shell cmd appops set --user $u $pk RUN_ANY_IN_BACKGROUND allow 2>$null | Out-Null
+      }
+      Write-Host ("  [ok] {0}" -f $pk) -ForegroundColor Green
+    }
+    Write-Host "  (Dica: no realme, confira tambem 'Iniciar automaticamente' de cada app se ainda parar.)" -ForegroundColor DarkGray
   }
 }
 

@@ -186,6 +186,7 @@
     <div class="device">
       <span id="dot" class="pulse"></span>
       <span class="name" id="devtxt">Verificando celular…</span>
+      <select id="deviceSel" title="Escolha qual celular configurar" onchange="selectDevice(this.value)" style="display:none;background:var(--card2);color:var(--txt);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;font-size:13px"></select>
       <span class="chips" id="chips"></span>
       <button class="btn-ghost btn-sm" onclick="checkDevice()">Atualizar</button>
     </div>
@@ -219,6 +220,33 @@
         </div>
         <div class="steps" id="steps"></div>
       </div>
+      <!-- Brilho e tela: configuração personalizada (usada pela etapa "Brilho e tela") -->
+      <div class="card" id="displayCard">
+        <div class="card-h">
+          <span class="t">💡 Brilho e tela</span>
+          <button class="btn-ghost btn-sm" onclick="aplicarTela()">Aplicar agora</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">Ajuste a gosto e clique em <b>Aplicar agora</b> pra mandar direto pro celular.</div>
+        <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="dispAdaptive" onchange="dispSync()"> Brilho adaptativo (automático)</label>
+        <div id="dispBrightRow" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span class="hint" style="min-width:54px">Brilho</span>
+          <input type="range" id="dispBright" min="0" max="100" value="100" oninput="dispSync()" style="flex:1;accent-color:var(--accent)">
+          <span id="dispBrightVal" style="min-width:44px;text-align:right;font-weight:600">100%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="hint" style="min-width:54px">Apagar</span>
+          <select id="dispTimeout" style="flex:1;background:var(--card2);color:var(--txt);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;font-size:13px">
+            <option value="15000">15 segundos</option>
+            <option value="30000">30 segundos</option>
+            <option value="60000">1 minuto</option>
+            <option value="120000">2 minutos</option>
+            <option value="300000" selected>5 minutos</option>
+            <option value="600000">10 minutos</option>
+            <option value="1800000">30 minutos</option>
+            <option value="2147483647">Nunca</option>
+          </select>
+        </div>
+      </div>
       <!-- ação primária -->
       <div class="card">
         <div class="toolbar">
@@ -237,6 +265,7 @@
       <button class="btn-ghost btn-sm" onclick="sysUpdate()">⬆ Atualizar sistema</button>
       <button class="btn-ghost btn-sm" onclick="reboot()">🔄 Reiniciar</button>
       <button class="btn-ghost btn-sm" onclick="trimFacebook()">🪶 Enxugar Facebook</button>
+      <button class="btn-ghost btn-sm" onclick="permsAll()">🔐 Permitir tudo (apps)</button>
       <button class="btn-ghost btn-sm" onclick="atualizarPrograma()">⬆ Atualizar programa</button>
       <button class="btn-ghost btn-sm" onclick="saveLog()">💾 Baixar log</button>
     </div>
@@ -412,13 +441,15 @@
 
 const STEPS = [
   {flag:'SkipDebloat',     ic:'🧹', t:'Remover bloatware',        d:'Apps de fábrica, jogos e lixo (auto-detecção)', hdr:'Debloat'},
-  {flag:'SkipServices',    ic:'🧊', t:'Congelar serviços',        d:'Push HeyTap + telemetria em segundo plano', hdr:'Congelando servi'},
   {flag:'SkipApks',        ic:'📦', t:'Instalar APKs',            d:'Pasta /apks: WhatsApp, WA Business, Telegram, Island', hdr:'Instalando APKs'},
   {flag:'SkipBusiness',    ic:'🏪', t:'WA Business (loja)',  d:'Garante via loja (App Market/Play) se o APK não couber na arquitetura', hdr:'WhatsApp Business (loja)'},
   {flag:'SkipIsland',      ic:'🏝️', t:'Island + clones',          d:'Perfil de trabalho: WhatsApp, WA Business, Telegram', hdr:'Island: perfil'},
   {flag:'SkipTheme',       ic:'🌙', t:'Tema escuro',              d:'Ativa o modo noturno do sistema', hdr:'Tema escuro'},
+  {flag:'SkipSpeed',       ic:'⚡', t:'Deixar mais rápido',        d:'Desativa as animações do sistema (interface responde na hora)', hdr:'Deixar o celular'},
   {flag:'SkipNativeClone', ic:'👯', t:'Clonador nativo',          d:'Clona WhatsApp e WA Business (realme)', hdr:'Clonador nativo'},
   {flag:'SkipSuggestions', ic:'🚫', t:'Sugestões de app off',     d:'Desliga "Mostrar aplicativos sugeridos"', hdr:'Mostrar aplicativos sugeridos'},
+  {flag:'SkipPerms',       ic:'🔐', t:'Permitir tudo nos apps',   d:'Concede câmera, contatos, mídia, SMS… a todos os apps e clones (não pedem depois)', hdr:'Permiss'},
+  {flag:'SkipBattery',     ic:'🔋', t:'Manter apps vivos',        d:'Ignora a economia de bateria pra WhatsApp/clones não pararem em 2º plano', hdr:'Manter apps'},
 ];
 const stepsEl = document.getElementById('steps');
 STEPS.forEach(s=>{
@@ -432,7 +463,7 @@ STEPS.forEach(s=>{
 function setAll(v){ document.querySelectorAll('#steps input').forEach(c=>c.checked=v); }
 function preset(p){
   const map={ full:STEPS.filter(s=>s.def!==false).map(s=>s.flag),
-              clean:['SkipDebloat','SkipServices','SkipTheme','SkipSuggestions'],
+              clean:['SkipDebloat','SkipTheme','SkipSuggestions'],
               apps:['SkipApks','SkipBusiness','SkipIsland','SkipNativeClone'] };
   const on=map[p]||[];
   document.querySelectorAll('#steps input').forEach(c=> c.checked = on.includes(c.dataset.flag));
@@ -467,10 +498,33 @@ function trackProgress(line){
 
 let es=null, deviceOk=false, running=false;
 function setButtons(){ document.getElementById('run').disabled=!deviceOk||running; document.getElementById('stop').disabled=!running; }
+// preenche/mostra o seletor de aparelho quando ha 2+ conectados
+function renderDeviceSel(devices,selected){
+  const sel=document.getElementById('deviceSel'); if(!sel) return;
+  const online=(devices||[]).filter(d=>d.state==='device');
+  if(online.length<2){ sel.style.display='none'; sel.innerHTML=''; sel.dataset.sig=''; return; }
+  // so reconstroi se a lista/selecao mudou (evita fechar o dropdown aberto no polling de 4s)
+  const sig=online.map(d=>d.serial).join(',')+'|'+(selected||'');
+  if(sel.dataset.sig===sig){ sel.style.display=''; return; }
+  sel.dataset.sig=sig;
+  sel.innerHTML='';
+  // sem aparelho escolhido: placeholder desabilitado obriga a escolha consciente
+  // (senao o 1o apareceria "selecionado" sem o servidor ter um alvo -> botao travado)
+  if(!selected){ const o=document.createElement('option'); o.value=''; o.textContent='— escolha o aparelho —'; o.disabled=true; o.selected=true; sel.appendChild(o); }
+  online.forEach(d=>{ const o=document.createElement('option'); o.value=d.serial; o.textContent=(d.model||'aparelho')+' · '+d.serial; if(d.serial===selected) o.selected=true; sel.appendChild(o); });
+  sel.style.display='';
+}
+async function selectDevice(serial){
+  if(!serial) return;   // ignora o placeholder
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  try{ await fetch('/api/select-device?serial='+encodeURIComponent(serial)); }catch(_){}
+  resetLoaded=false; await checkDevice();
+}
 async function checkDevice(){
   const dot=document.getElementById('dot'), tx=document.getElementById('devtxt'), chips=document.getElementById('chips');
   try{
     const r=await fetch('/api/device'); const j=await r.json(); chips.innerHTML='';
+    renderDeviceSel(j.devices,j.selected);
     if(j.status==='ok'){
       deviceOk=true; dot.className='pulse ok'; tx.textContent=j.model||'Conectado';
       const add=(t)=>{ const c=document.createElement('span'); c.className='chip'; c.textContent=t; chips.appendChild(c); };
@@ -478,7 +532,8 @@ async function checkDevice(){
       if(j.storage) add('💾 '+j.storage); if(j.ram) add('🧠 '+j.ram+' RAM'); if(j.rom) add('🧩 '+j.rom);
     } else {
       deviceOk=false;
-      if(j.status==='unauthorized'){ dot.className='pulse warn'; tx.textContent='Autorize a depuração USB no celular'; }
+      if(j.status==='multi'){ dot.className='pulse warn'; tx.textContent=(j.devices?j.devices.filter(d=>d.state==='device').length:2)+' celulares — escolha qual configurar:'; }
+      else if(j.status==='unauthorized'){ dot.className='pulse warn'; tx.textContent='Autorize a depuração USB no celular'; }
       else if(j.status==='sem-adb'){ dot.className='pulse err'; tx.textContent='ADB não encontrado'; }
       else { dot.className='pulse'; tx.textContent='Nenhum celular conectado'; }
     }
@@ -486,6 +541,33 @@ async function checkDevice(){
   if(deviceOk && !resetLoaded && !running) loadResetApps();
   else if(!deviceOk && resetLoaded) loadResetApps();
   if(!running) setButtons();
+}
+// ---- Brilho e tela: controles ----
+function dispSync(){
+  const ad=document.getElementById('dispAdaptive').checked;
+  const r=document.getElementById('dispBright'), row=document.getElementById('dispBrightRow');
+  document.getElementById('dispBrightVal').textContent=r.value+'%';
+  r.disabled=ad; row.style.opacity=ad?'.45':'1';
+}
+function dispValues(){
+  const ad=document.getElementById('dispAdaptive').checked?'1':'0';
+  const bright=Math.round((+document.getElementById('dispBright').value)/100*255);
+  const timeout=document.getElementById('dispTimeout').value;
+  return {adaptive:ad, bright:bright, timeout:timeout};
+}
+async function aplicarTela(){
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  const v=dispValues();
+  log('== Brilho e tela (aplicar agora) ==');
+  try{
+    const j=await (await fetch('/api/display?adaptive='+v.adaptive+'&bright='+v.bright+'&timeout='+v.timeout)).json();
+    if(j.ok){
+      const min=Math.round((+j.timeout||0)/60000*10)/10;
+      log('  adaptativo: '+(j.mode==='1'?'ligado':'desligado')+' · brilho: '+(j.brightness||'?')+'/255 · apagar: '+(isFinite(min)?min+' min':'—'));
+      toast('Tela ajustada ✓');
+    } else { log('[!] Falha: '+(j.err||'')); toast('Falha ao aplicar'); }
+  }catch(e){ log('[!] Falha ao aplicar (servidor offline?).'); toast('Falha'); }
 }
 function runFlags(skip,dry){
   if(running) return; running=true; resetStats(); setButtons();
@@ -612,7 +694,7 @@ async function ensureCfgLists(){
   try{ const c=await (await fetch('/api/config')).json();
     const rx=a=>(a||[]).map(s=>{try{return new RegExp(s)}catch(_){return null}}).filter(Boolean);
     cfgLists={P:rx(c.protect),B:rx(c.bloatPatterns),K:rx(c.keepThirdParty),force:new Set(c.forceRemove||[])};
-  }catch(_){ cfgLists={P:[],B:[],K:[],force:new Set()}; }
+  }catch(_){ /* nao cacheia a falha: deixa cfgLists nulo p/ tentar de novo na proxima (classify trata nulo como neutro) */ }
 }
 function classify(p){
   const any=(s,L)=>L.some(r=>r.test(s));
@@ -795,12 +877,14 @@ function appStatus(a,on){
   const ip=a.pkgs.find(p=>resetInstalled.has(p));
   const iv=(resetVersions.installed||{})[ip];
   let s='<span style="color:var(--ok)">● instalado</span>';
-  if(iv&&iv.versionName) s+=' <span style="color:var(--muted)">v'+iv.versionName+'</span>';
+  if(iv&&iv.versionName) s+=' <span style="color:var(--muted)">v'+escHtml(iv.versionName)+'</span>';
   const av=apkVerByPkg()[ip];
   if(av&&av.versionCode&&iv&&iv.versionCode&&+av.versionCode>+iv.versionCode)
-    s+=' <span style="color:var(--warn)" title="o APK na pasta é mais novo">↑ APK v'+av.versionName+'</span>';
+    s+=' <span style="color:var(--warn)" title="o APK na pasta é mais novo">↑ APK v'+escHtml(av.versionName)+'</span>';
   return s;
 }
+// escapa dados nao-confiaveis (ex.: versionName vindo do dumpsys do aparelho) antes de ir pro innerHTML
+function escHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 async function loadResetApps(){
   const el=document.getElementById('resetList');
   if(!deviceOk){ el.innerHTML='<div class="hint">Conecte o celular para listar os apps.</div>'; resetLoaded=false; return; }
@@ -1032,6 +1116,17 @@ function permsBulk(action){
     es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
   };
   next();
+}
+// ---- conceder as permissões comuns a TODOS os apps instalados de uma vez ----
+function permsAll(){
+  if(running){ toast('Aguarde a tarefa atual terminar'); return; }
+  if(!deviceOk){ toast('Conecte o celular primeiro'); return; }
+  if(!confirm('Conceder as permissões comuns (câmera, microfone, contatos, localização, armazenamento, telefone, SMS, notificações…) a TODOS os apps de terceiros — no perfil principal E nos clones (Island e clone nativo do WhatsApp/Business)?\n\nAssim eles não pedem depois. Só vale para as permissões que cada app declara. Alguns aparelhos (realme/ColorOS) exigem "Depuração USB (Config. de segurança)" ligada nas Opções do desenvolvedor.')) return;
+  running=true; setButtons();
+  log('== Conceder permissões a todos os apps ==');
+  es=new EventSource('/api/perms-all?scope=3');
+  es.onmessage=(e)=>{ if(e.data.startsWith('__DONE__')){ log('>> Permissões concedidas.'); toast('Permissões concedidas ✓'); notifyDone('Permissões concedidas a todos os apps'); stop(); return; } log(e.data); };
+  es.onerror=()=>{ log('[!] Conexão perdida.'); stop(); };
 }
 // ---- Clone App: criar/deletar clones internos ----
 function openCloneApp(){

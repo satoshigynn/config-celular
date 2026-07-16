@@ -1,4 +1,4 @@
-<#
+﻿<#
 ================================================================
   gerenciar-app.ps1  -  Desinstala / instala / reinstala / limpa
                         dados de UM app especifico (WhatsApp etc.)
