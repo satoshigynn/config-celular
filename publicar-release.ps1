@@ -3,7 +3,11 @@
 # ----------------------------------------------------------------------------
 #  Faz, nesta ordem (a ordem importa):
 #    1. Release da versao, com o instalador, o ZIP portatil e o SHA256SUMS.
-#    2. Sobe para a tag "apks" so os APKs cujo hash mudou.
+#    2. Sobe para a tag "apks", com --clobber, TODOS os .apk da pasta local
+#       que batem com o catalogo - nao so os que mudaram. A API do GitHub
+#       expoe tamanho e data dos assets, mas nao o sha256, entao decidir "esse
+#       ja esta igual" exigiria baixar cada um antes - o mesmo trafego que se
+#       quer economizar. Reenviar e idempotente; o custo e banda, nao risco.
 #    3. CONFERE, baixando de volta, se o que esta publicado bate com o
 #       publicar\apks.json.
 #    4. So entao commita e envia o apks.json.
@@ -26,6 +30,34 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+# ---------------------------------------------------------------------------
+#  Com ErrorActionPreference='Stop', qualquer linha que um programa externo
+#  escreva em stderr vira erro FATAL - mesmo sendo um aviso esperado. O
+#  "gh release view" escreve "release not found" quando a Release ainda nao
+#  existe, que e o caso normal da PRIMEIRA publicacao: o script morria ali,
+#  antes de criar coisa nenhuma.
+#
+#  Nao da para resolver com $PSNativeCommandUseErrorActionPreference: essa
+#  variavel so existe no PowerShell 7, e este script tambem roda no Windows
+#  PowerShell 5.1, onde o problema e o mesmo.
+#
+#  Entao toda chamada externa passa por aqui: roda com 'Continue', devolve a
+#  saida como texto e deixa o $LASTEXITCODE intacto - que e o que o script
+#  usa para decidir. Redirecionar stderr nao serviria: o valor esta em ler o
+#  texto ("release not found" e resposta, nao falha).
+# ---------------------------------------------------------------------------
+function Rodar {
+  param(
+    [Parameter(Mandatory = $true)][string] $Programa,
+    [Parameter(ValueFromRemainingArguments = $true)][string[]] $Argumentos
+  )
+  $antigo = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try   { & $Programa @Argumentos 2>&1 | ForEach-Object { "$_" } }
+  finally { $ErrorActionPreference = $antigo }
+}
+
 $base = Split-Path -Parent $MyInvocation.MyCommand.Path
 $saida = Join-Path $base 'instalador\_saida'
 
@@ -37,7 +69,7 @@ if (-not $Versao) { $Versao = (Get-Content -LiteralPath (Join-Path $base 'versao
 $tag = "v$Versao"
 
 # ------------------------------------------------------------ conferencias --
-& gh auth status *> $null
+Rodar gh auth status | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'gh nao autenticado. Rode: gh auth login' }
 Ok 'gh autenticado'
 
@@ -54,13 +86,13 @@ Ok "$($assets.Count) arquivos prontos"
 
 # --------------------------------------------------------------- 1. Release --
 Passo "Release $tag"
-& gh release view $tag *> $null
+Rodar gh release view $tag | Out-Null
 if ($LASTEXITCODE -eq 0) {
   Aviso "a Release $tag ja existe - substituindo os arquivos"
-  & gh release upload $tag @assets --clobber
+  Rodar gh release upload $tag @assets --clobber | ForEach-Object { "   $_" }
   if ($LASTEXITCODE -ne 0) { throw 'falha ao enviar os arquivos' }
 } else {
-  & gh release create $tag --title "Config Celular $Versao" --notes-file $notas @assets
+  Rodar gh release create $tag --title "Config Celular $Versao" --notes-file $notas @assets | ForEach-Object { "   $_" }
   if ($LASTEXITCODE -ne 0) { throw 'falha ao criar a Release' }
 }
 Ok "https://github.com/satoshigynn/config-celular/releases/tag/$tag"
@@ -69,7 +101,7 @@ Ok "https://github.com/satoshigynn/config-celular/releases/tag/$tag"
 Passo "APKs na tag $TagApks"
 $cat = Get-Content -LiteralPath (Join-Path $base 'publicar\apks.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 
-& gh release view $TagApks *> $null
+Rodar gh release view $TagApks | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "a tag '$TagApks' nao tem Release. Crie-a antes de subir APK." }
 
 $subir = @()
@@ -87,7 +119,7 @@ foreach ($e in $cat.apks) {
 if ($subir.Count) {
   Write-Host "   enviando $($subir.Count) arquivo(s) - pode demorar:"
   $subir | ForEach-Object { Write-Host "     $(Split-Path $_ -Leaf)  ($([math]::Round((Get-Item $_).Length/1MB,1)) MB)" }
-  & gh release upload $TagApks @subir --clobber
+  Rodar gh release upload $TagApks @subir --clobber | ForEach-Object { "   $_" }
   if ($LASTEXITCODE -ne 0) { throw 'falha ao enviar os APKs' }
   Ok 'APKs enviados'
 }
@@ -117,20 +149,24 @@ const get=(u,n=0)=>new Promise((res,rej)=>{ if(n>5) return rej(new Error("redire
 '@
   $tmp = Join-Path $env:TEMP 'conferir-apks.js'
   [System.IO.File]::WriteAllText($tmp, $script, (New-Object System.Text.UTF8Encoding($false)))
-  & $node $tmp (Join-Path $base 'publicar\apks.json')
+  Rodar $node $tmp (Join-Path $base 'publicar\apks.json') | ForEach-Object { "$_" }
   if ($LASTEXITCODE -ne 0) { throw 'o que esta publicado nao bate com o catalogo - apks.json NAO foi commitado' }
   Ok 'tudo publicado bate com o catalogo'
 }
 
 # --------------------------------------------------------- 4. commit do json -
 Passo 'Commit do catalogo'
-& git -C $base add publicar/apks.json
-& git -C $base diff --cached --quiet
+Rodar git -C $base add publicar/apks.json | Out-Null
+Rodar git -C $base diff --cached --quiet | Out-Null
 if ($LASTEXITCODE -eq 0) {
   Ok 'catalogo ja estava igual - nada a commitar'
 } else {
-  & git -C $base commit -q -m "apks: catalogo da nuvem atualizado (WhatsApp $(($cat.apks | Where-Object { $_.arquivo -eq 'WhatsApp.apk' }).versionName), Telegram $(($cat.apks | Where-Object { $_.arquivo -eq 'Telegram.apk' }).versionName))"
-  & git -C $base push origin main --quiet
+  $vWa = ($cat.apks | Where-Object { $_.arquivo -eq 'WhatsApp.apk' }).versionName
+  $vTg = ($cat.apks | Where-Object { $_.arquivo -eq 'Telegram.apk' }).versionName
+  Rodar git -C $base commit -q -m "apks: catalogo da nuvem atualizado (WhatsApp $vWa, Telegram $vTg)" | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw 'falha ao commitar o catalogo' }
+  Rodar git -C $base push origin main | ForEach-Object { "   $_" }
+  if ($LASTEXITCODE -ne 0) { throw 'falha ao enviar o commit do catalogo' }
   Ok 'catalogo commitado e enviado'
 }
 
