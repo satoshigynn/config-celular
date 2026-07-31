@@ -24,7 +24,7 @@
 ; O gerar-instalador.ps1 passa /DVersao. O ifndef deixa compilar a mao tambem;
 ; sem ele, este #define venceria o da linha de comando e a versao ficaria presa.
 #ifndef Versao
-  #define Versao    "6.0"
+  #define Versao    "6.1"
 #endif
 #define Autor       "Satoshigyn"
 #define Site        "https://github.com/satoshigynn/config-celular"
@@ -34,15 +34,30 @@
 ; nome. Serve para instalar numa pasta temporaria, conferir que o pacote sobe
 ; e desinstalar - tudo isso sem encostar no registro da instalacao de verdade.
 ; Publicar so o build SEM /DTeste.
+; ArqSaida e o nome COMPLETO do arquivo gerado, montado de uma vez. Antes era
+; um sufixo colado no meio de "ConfigCelular-<versao><sufixo>-instalador", o
+; que produzia "ConfigCelular-6.1-completo-instalador.exe" - nome que o
+; gerador nao procurava, entao ele acusava que o ISCC nao tinha gerado nada.
 #ifdef Teste
-  #define IdApp   "{{CFG0CELULAR-TESTE-DESCARTAVEL}"
-  #define Sufixo  " (TESTE)"
-  #define SufArq  "-TESTE"
+  #define IdApp    "{{CFG0CELULAR-TESTE-DESCARTAVEL}"
+  #define Sufixo   " (TESTE)"
+  #define ArqSaida "ConfigCelular-" + Versao + "-TESTE-instalador"
 #else
-  #define IdApp   "{{B2A7C3E1-4F6D-4A9B-9C21-CFG0CELULAR01}}"
-  #define Sufixo  ""
-  #define SufArq  ""
+  #define IdApp    "{{B2A7C3E1-4F6D-4A9B-9C21-CFG0CELULAR01}}"
+  #define Sufixo   ""
+  #ifdef Completo
+    #define ArqSaida "ConfigCelular-" + Versao + "-completo"
+  #else
+    #define ArqSaida "ConfigCelular-" + Versao + "-instalador"
+  #endif
 #endif
+
+; MODO COMPLETO (/DCompleto): leva junto a pasta apks\ - os aplicativos que o
+; setup instala no celular. Sem ele o pacote tem 41 MB e a pasta apks\ chega
+; VAZIA: bom para quem so atualiza o programa, inutil para quem acabou de
+; instalar numa maquina nova e vai preparar aparelho.
+; Os dois instalam o MESMO programa, com o mesmo AppId - a diferenca e so o
+; conteudo da pasta apks\.
 
 [Setup]
 AppId={#IdApp}
@@ -53,7 +68,13 @@ AppPublisher={#Autor}
 AppPublisherURL={#Site}
 AppSupportURL={#Site}/issues
 AppUpdatesURL={#Site}/releases
-VersionInfoVersion=6.0.0.0
+; Vem do gerar-instalador.ps1, que normaliza "6.1" para "6.1.0.0" (o Windows
+; exige 4 numeros). Estava fixo em 6.0.0.0: as propriedades do arquivo
+; mentiriam a versao em todo lançamento seguinte.
+#ifndef VersaoArquivo
+  #define VersaoArquivo Versao + ".0.0"
+#endif
+VersionInfoVersion={#VersaoArquivo}
 VersionInfoDescription=Gerenciador de aparelhos Android com espelhamento de tela
 
 ; Instala na pasta do usuario: nao pede administrador.
@@ -67,7 +88,7 @@ AllowNoIcons=yes
 LicenseFile=_stage\LICENSE
 InfoAfterFile=_stage\LEIA-ME.txt
 OutputDir=_saida
-OutputBaseFilename=ConfigCelular-{#Versao}{#SufArq}-instalador
+OutputBaseFilename={#ArqSaida}
 SetupIconFile=icone.ico
 UninstallDisplayIcon={app}\{#Executavel}
 UninstallDisplayName={#Nome} {#Versao}
@@ -109,6 +130,14 @@ Source: "_stage\platform-tools\*";   DestDir: "{app}\platform-tools"; Flags: ign
 Source: "_stage\config.json";        DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "_stage\apks-fontes.json";   DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "_stage\apps-catalog.json";  DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
+
+#ifdef Completo
+; ---- os aplicativos (so no pacote completo) --------------------------------
+; nocompression de proposito: APK e ZIP, ja vem comprimido. Tentar comprimir de
+; novo levaria muitos minutos para economizar quase nada - e ainda faria o
+; instalador demorar para extrair na maquina do usuario.
+Source: "..\apks\*"; DestDir: "{app}\apks"; Flags: ignoreversion recursesubdirs createallsubdirs nocompression
+#endif
 
 [Dirs]
 ; Conteudo do usuario: fica onde esta, inclusive ao desinstalar.

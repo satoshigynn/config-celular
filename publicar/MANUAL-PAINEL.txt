@@ -1,5 +1,5 @@
 ==========================================================
-  MANUAL DO PAINEL - Config Celular v6.0
+  MANUAL DO PAINEL - Config Celular v6.1
 ==========================================================
 Guia funcao por funcao. Para o passo a passo rapido, veja LEIA-ME.txt.
 

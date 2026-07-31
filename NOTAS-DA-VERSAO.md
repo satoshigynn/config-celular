@@ -4,6 +4,30 @@ O `publicar.ps1` lê este arquivo: pega o bloco `## <versão>` correspondente e
 grava o texto como `notas` no `publicar/versao.json`. É esse texto que aparece
 no painel, em Configurações → Atualização.
 
+## 6.1
+
+Pacote completo com os aplicativos incluídos, e dois erros do setup corrigidos.
+
+**O download agora vem com os APKs.** O instalador da 6.0 tinha 41 MB e criava
+a pasta `apks\` vazia — quem instalava numa máquina nova e rodava o setup não
+via app nenhum ser instalado. Passa a existir um pacote **completo**, com os
+aplicativos junto, para preparar celular sem depender de baixar nada. O pacote
+leve continua disponível para quem só quer atualizar o programa.
+
+**O setup dizia que o WhatsApp estava instalado quando não estava.** O comando
+`pm list packages com.whatsapp` filtra por trecho no próprio aparelho e devolve
+também `com.whatsapp.w4b`. A verificação comparava por trecho, então o WhatsApp
+Business fazia o WhatsApp comum parecer presente: o resumo final anunciava
+"WhatsApp: sim" num celular que só tinha o Business, e o clonador dizia
+"[já clonado]" sobre um app ausente. Agora a comparação é com a linha inteira.
+
+**A pasta de APKs vazia passava em silêncio.** A etapa de instalação imprimia o
+cabeçalho e mais nada, sem dizer que não havia o que instalar. Agora avisa e
+diz onde baixar.
+
+**Correção menor:** as propriedades do instalador ficavam presas em `6.0.0.0`
+em todo lançamento seguinte; a versão agora acompanha a do pacote.
+
 ## 6.0
 
 Espelhamento de verdade, interface nova e verificação de assinatura de APK.

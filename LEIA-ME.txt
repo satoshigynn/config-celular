@@ -1,5 +1,5 @@
 ==========================================================
-  CONFIG CELULAR - gerenciador de aparelhos Android (v6.0)
+  CONFIG CELULAR - gerenciador de aparelhos Android (v6.1)
 ==========================================================
 
 Esta pasta e AUTOSSUFICIENTE: ja vem com o ADB, o scrcpy e o Node
@@ -9,6 +9,19 @@ Nao precisa instalar nada.
 Funciona em celulares realme/ColorOS (recursos completos) e tambem
 em outras marcas - Samsung, Xiaomi, Motorola, etc. (as etapas
 exclusivas do realme sao puladas automaticamente).
+
+----------------------------------------------------------
+NOVIDADES DA VERSAO 6.1
+----------------------------------------------------------
+  * O DOWNLOAD VEM COM OS APLICATIVOS. O pacote "completo" traz a
+    pasta apks\ cheia: instalou numa maquina nova, ja da para
+    preparar celular sem baixar mais nada. Existe tambem o pacote
+    leve (so o programa), para quem so quer atualizar.
+  * Corrigido: o setup dizia "WhatsApp: sim" em celular que so
+    tinha o WhatsApp Business. O aparelho filtra pacote por trecho
+    e devolvia com.whatsapp.w4b na busca por com.whatsapp.
+  * Corrigido: com a pasta apks\ vazia, a etapa de instalacao
+    passava em silencio. Agora avisa e diz onde baixar.
 
 ----------------------------------------------------------
 NOVIDADES DA VERSAO 6.0

@@ -1,6 +1,6 @@
 {
-    "versao":  "6.0",
-    "notas":  "Espelhamento de verdade, interface nova e verificação de assinatura de APK.",
+    "versao":  "6.1",
+    "notas":  "Pacote completo com os aplicativos incluídos, e dois erros do setup corrigidos.",
     "gerado":  "2026-07-31",
     "arquivos":  [
                      {
@@ -21,11 +21,11 @@
                      },
                      {
                          "caminho":  "LEIA-ME.txt",
-                         "sha256":  "5a37361a56b654f923faf562e3e5e82ad3d94cb0749d11543149f51784e9a50b"
+                         "sha256":  "065bc6b21c60bf008f3a6f6f1a80ebcfaa22adf058085db18b12876d0f244518"
                      },
                      {
                          "caminho":  "MANUAL-PAINEL.txt",
-                         "sha256":  "ea8265e5a197a1fe9149596a0cb304c51af21dcf0905f171c79c37f2b38558cd"
+                         "sha256":  "c007e03a3a89ef020bbbd6792ccfad1a4f1558b3d0d6e60dabd7562fcad8b90d"
                      },
                      {
                          "caminho":  "painel/app/core/api.js",
@@ -217,7 +217,7 @@
                      },
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "e8bc92dcf592455d12a31ef36a2b294b88be080f1fc8d688892c433e60e4e8fc"
+                         "sha256":  "3010a474923aa1b5e00ffc635997842215faf8318412645c4c05fff4c5d46179"
                      }
                  ]
 }

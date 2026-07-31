@@ -278,6 +278,18 @@ if(-not $SkipApks){
   $apkDir = Join-Path $ScriptDir "apks"
   if(Test-Path $apkDir){
     Write-Host "`n== Instalando APKs de .\apks ==" -ForegroundColor Cyan
+    # A pasta existir nao significa ter conteudo: uma instalacao nova a cria
+    # VAZIA (os APKs nao vem no instalador, sao baixados depois). Sem este
+    # aviso a etapa passava em silencio absoluto - nenhuma linha impressa - e
+    # o resumo no fim ainda dizia que estava tudo certo.
+    $temSoltos  = @(Get-ChildItem $apkDir -Filter *.apk -ErrorAction SilentlyContinue).Count
+    $temBundles = @(Get-ChildItem $apkDir -Directory -ErrorAction SilentlyContinue |
+                    Where-Object { @(Get-ChildItem $_.FullName -Filter *.apk -ErrorAction SilentlyContinue).Count -gt 0 }).Count
+    if($temSoltos -eq 0 -and $temBundles -eq 0){
+      Write-Host "  A pasta .\apks esta VAZIA - nenhum app sera instalado." -ForegroundColor Yellow
+      Write-Host "  Baixe antes no painel: tela Configurar > 'Atualizar APKs'," -ForegroundColor Yellow
+      Write-Host "  ou Configuracoes > 'Atualizar APKs da nuvem'. Depois rode o setup de novo." -ForegroundColor Yellow
+    }
     $devAbiList = @(((& $Adb shell getprop ro.product.cpu.abilist) -join '').Trim() -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if(-not $devAbiList){ $devAbiList = @(((& $Adb shell getprop ro.product.cpu.abi) -join '').Trim()) }
     Get-ChildItem $apkDir -Filter *.apk | ForEach-Object {
@@ -324,7 +336,16 @@ if(-not $SkipApks){
 
 # ================= 6. WHATSAPP BUSINESS via APP MARKET =================
 function Is-Installed([string]$pkg){
-  return [bool]((& $Adb shell pm list packages $pkg) -match [regex]::Escape($pkg))
+  # "pm list packages com.whatsapp" filtra por SUBSTRING no proprio aparelho e
+  # devolve TAMBEM "package:com.whatsapp.w4b". Comparando com -match, o
+  # WhatsApp Business fazia o WhatsApp comum parecer instalado: o resumo final
+  # dizia "WhatsApp: sim" num celular que so tinha o Business, e o clonador
+  # anunciava "[ja clonado]" um app ausente.
+  # Por isso a comparacao e' com a linha INTEIRA, nunca por trecho.
+  $linhas = @((& $Adb shell pm list packages $pkg) |
+              ForEach-Object { ($_ -replace '^package:','').Trim() } |
+              Where-Object { $_ })
+  return [bool]($linhas -contains $pkg)
 }
 # dispensa dialogos conhecidos (promo "adicionar atalho", aviso de dados moveis)
 function Dismiss-Dialogs(){

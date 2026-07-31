@@ -135,15 +135,42 @@ Ok "icone.ico ($($imagens.Count) resolucoes, $([math]::Round((Get-Item $ico).Len
 
 # --------------------------------------------------------------- compilacao --
 if (-not (Test-Path -LiteralPath $saida)) { New-Item -ItemType Directory -Path $saida -Force | Out-Null }
-Passo 'Compilando o instalador (pode demorar: compressao maxima)'
-$log = & $iscc "/DVersao=$Versao" (Join-Path $aqui 'ConfigCelular.iss') 2>&1
-if ($LASTEXITCODE -ne 0) {
-  $log | Select-Object -Last 25 | ForEach-Object { Write-Host "   $_" -ForegroundColor Red }
-  Erro "ISCC falhou (codigo $LASTEXITCODE)"
+
+# O Windows quer 4 numeros nas propriedades do arquivo. "6.1" vira "6.1.0.0".
+$partes = @($Versao -split '\.') + @('0', '0', '0', '0')
+$verArquivo = ($partes[0..3]) -join '.'
+
+# Dois pacotes do MESMO programa, com o mesmo AppId:
+#   leve     - so o programa; a pasta apks\ chega vazia (41 MB)
+#   completo - leva os aplicativos junto, para preparar celular numa maquina
+#              nova sem depender de baixar nada (~1 GB)
+$saidas = @{}
+foreach ($modo in @('leve', 'completo')) {
+  $defs = @("/DVersao=$Versao", "/DVersaoArquivo=$verArquivo")
+  $nome = "ConfigCelular-$Versao-instalador.exe"
+  if ($modo -eq 'completo') {
+    $mbApks = [math]::Round((Get-ChildItem -LiteralPath (Join-Path $raiz 'apks') -Recurse -File -EA SilentlyContinue |
+                             Measure-Object Length -Sum).Sum / 1MB, 0)
+    if (-not $mbApks) { Aviso 'a pasta apks\ esta vazia - pulando o pacote completo'; continue }
+    $defs += '/DCompleto'
+    $nome = "ConfigCelular-$Versao-completo.exe"
+    Passo "Compilando o pacote COMPLETO (+$mbApks MB de APKs, sem recomprimir)"
+  } else {
+    Passo 'Compilando o pacote leve (compressao maxima - demora)'
+  }
+
+  $log = & $iscc @defs (Join-Path $aqui 'ConfigCelular.iss') 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    $log | Select-Object -Last 25 | ForEach-Object { Write-Host "   $_" -ForegroundColor Red }
+    Erro "ISCC falhou no pacote $modo (codigo $LASTEXITCODE)"
+  }
+  $alvo = Join-Path $saida $nome
+  if (-not (Test-Path -LiteralPath $alvo)) { Erro "o ISCC terminou mas $nome nao apareceu" }
+  $saidas[$modo] = $alvo
+  Ok "$nome  ($([math]::Round((Get-Item $alvo).Length/1MB,1)) MB)"
 }
-$exe = Join-Path $saida "ConfigCelular-$Versao-instalador.exe"
-if (-not (Test-Path -LiteralPath $exe)) { Erro 'o ISCC terminou mas o .exe nao apareceu' }
-Ok "$(Split-Path $exe -Leaf)  ($([math]::Round((Get-Item $exe).Length/1MB,1)) MB)"
+$exe = $saidas['leve']
+$exeCompleto = $saidas['completo']
 
 # -------------------------------------------------------------------- portatil
 $zip = Join-Path $saida "ConfigCelular-$Versao-portatil.zip"
@@ -159,8 +186,8 @@ if (-not $PularZip) {
 # ----------------------------------------------------------------- conferencia
 Passo 'Hashes'
 $linhas = @()
-foreach ($f in @($exe, $zip)) {
-  if (-not (Test-Path -LiteralPath $f)) { continue }
+foreach ($f in @($exeCompleto, $exe, $zip)) {
+  if (-not $f -or -not (Test-Path -LiteralPath $f)) { continue }
   $h = (Get-FileHash -LiteralPath $f -Algorithm SHA256).Hash.ToLower()
   $linhas += "$h  $(Split-Path $f -Leaf)"
   Write-Host "   $h  $(Split-Path $f -Leaf)"

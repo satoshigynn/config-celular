@@ -82,6 +82,17 @@ $notas = Join-Path $saida 'NOTAS-RELEASE.md'
 foreach ($f in ($assets + $notas)) {
   if (-not (Test-Path -LiteralPath $f)) { throw "falta o arquivo: $f  (rode instalador\gerar-instalador.ps1)" }
 }
+
+# O pacote completo (com os APKs) e' opcional: so existe quando a pasta apks\
+# tinha conteudo na hora de gerar. Vai na frente da lista porque e' o download
+# principal - e' ele que serve para preparar celular numa maquina nova.
+$completo = Join-Path $saida "ConfigCelular-$Versao-completo.exe"
+if (Test-Path -LiteralPath $completo) {
+  $assets = @($completo) + $assets
+  Ok "pacote completo incluido ($([math]::Round((Get-Item $completo).Length/1MB)) MB)"
+} else {
+  Aviso 'sem pacote completo nesta geracao (a pasta apks\ estava vazia)'
+}
 Ok "$($assets.Count) arquivos prontos"
 
 # --------------------------------------------------- 0. links do README ------
@@ -94,7 +105,7 @@ $readme = Join-Path $base 'README.md'
 $antes = [System.IO.File]::ReadAllText($readme)
 $depois = $antes
 $depois = [regex]::Replace($depois, 'releases/download/v[0-9][0-9.]*/', "releases/download/$tag/")
-$depois = [regex]::Replace($depois, 'ConfigCelular-[0-9][0-9.]*-(instalador\.exe|portatil\.zip)', "ConfigCelular-$Versao-`$1")
+$depois = [regex]::Replace($depois, 'ConfigCelular-[0-9][0-9.]*-(completo\.exe|instalador\.exe|portatil\.zip)', "ConfigCelular-$Versao-`$1")
 $depois = [regex]::Replace($depois, '\*\*vers[aã]o [0-9][0-9.]*\*\*', "**versão $Versao**")
 if ($depois -ne $antes) {
   [System.IO.File]::WriteAllText($readme, $depois, (New-Object System.Text.UTF8Encoding($false)))
