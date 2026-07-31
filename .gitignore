@@ -25,6 +25,9 @@
 /node.exe
 *.exe
 /unins000.dat
+# Excecao: este e' nosso, tem 36 KB e nao existe em lugar nenhum para baixar.
+# Sem ele o instalador nao pode ser gerado de novo.
+!/Abrir Painel.exe
 # A BARRA DA FRENTE E OBRIGATORIA. Sem ela o padrao casa em QUALQUER
 # profundidade, e "scrcpy/" engoliria painel/server/scrcpy/ - os quatro
 # arquivos do motor de espelhamento, o coracao do projeto. Ja aconteceu.
@@ -33,6 +36,14 @@
 
 # ---- conteudo pesado -------------------------------------------------------
 /apks/
+
+# ---- gerados pela compilacao do instalador ---------------------------------
+# _stage e uma copia da instalacao; _saida e o .exe e o .zip publicados no
+# Release; icone.ico e derivado do logo.png. Todos sao refeitos pelo
+# gerar-instalador.ps1 - versionar seria guardar peso a toa.
+/instalador/_stage/
+/instalador/_saida/
+/instalador/icone.ico
 
 # ---- temporarios e sobras --------------------------------------------------
 /.tmp-envios/

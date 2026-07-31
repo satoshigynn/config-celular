@@ -14,6 +14,26 @@ sozinhas).
 
 ---
 
+## Baixar
+
+**[⬇ Baixar a versão mais recente](https://github.com/satoshigynn/config-celular/releases/latest)**
+
+| Arquivo | Para quem |
+|---|---|
+| `ConfigCelular-6.0-instalador.exe` | Uso normal. Instala na sua pasta de usuário, sem pedir administrador, cria os atalhos e atualiza uma instalação anterior sem apagar suas listas. |
+| `ConfigCelular-6.0-portatil.zip` | Sem instalar nada. Descompacte onde quiser e rode o `Abrir Painel.exe` — dá para levar num pendrive. |
+| `SHA256SUMS.txt` | Conferir se o download veio íntegro. |
+
+Já vem com ADB, scrcpy e Node embutidos: não precisa instalar mais nada.
+
+Para conferir o download:
+
+```bash
+Get-FileHash ConfigCelular-6.0-instalador.exe -Algorithm SHA256
+```
+
+---
+
 ## O espelhamento
 
 Não é o `scrcpy.exe` aberto numa janela à parte. O servidor Node **fala o
@@ -121,6 +141,13 @@ APKs baixados pelo atualizador passam por verificação de assinatura antes de
 serem adotados: o `apksigner` confere se o conteúdo bate com a assinatura, e o
 certificado é comparado com o do arquivo que já estava na pasta. Veredito
 negativo é terminal — não existe caminho alternativo que aceite o pacote.
+
+Com uma ressalva honesta: o `apksigner` mora no **build-tools** do Android SDK
+e depende de Java, então não vem embutido (seriam mais de 50 MB de JRE). Sem
+ele, `cert-apk.ps1` cai no parser próprio e reporta `VERIFICADO=parcial` — ele
+lê o certificado, mas não reconfere os digests do conteúdo. Quem quiser a
+verificação completa instala o Android SDK build-tools e um Java; o painel
+acha sozinho e passa a reportar `VERIFICADO=sim`.
 
 ---
 
