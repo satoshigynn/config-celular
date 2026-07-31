@@ -16,21 +16,29 @@ sozinhas).
 
 ## Baixar
 
-**[⬇ Baixar a versão mais recente](https://github.com/satoshigynn/config-celular/releases/latest)**
+<div align="center">
 
-| Arquivo | Para quem |
-|---|---|
-| `ConfigCelular-6.0-instalador.exe` | Uso normal. Instala na sua pasta de usuário, sem pedir administrador, cria os atalhos e atualiza uma instalação anterior sem apagar suas listas. |
-| `ConfigCelular-6.0-portatil.zip` | Sem instalar nada. Descompacte onde quiser e rode o `Abrir Painel.exe` — dá para levar num pendrive. |
-| `SHA256SUMS.txt` | Conferir se o download veio íntegro. |
+### ⬇ [**Baixar o instalador**](https://github.com/satoshigynn/config-celular/releases/download/v6.0/ConfigCelular-6.0-instalador.exe) &nbsp;·&nbsp; [versão portátil](https://github.com/satoshigynn/config-celular/releases/download/v6.0/ConfigCelular-6.0-portatil.zip)
+
+**versão 6.0** &nbsp;·&nbsp; Windows 10/11 &nbsp;·&nbsp; [todas as versões](https://github.com/satoshigynn/config-celular/releases)
+
+</div>
+
+| Arquivo | Tamanho | Para quem |
+|---|---|---|
+| [**ConfigCelular-6.0-instalador.exe**](https://github.com/satoshigynn/config-celular/releases/download/v6.0/ConfigCelular-6.0-instalador.exe) | 41 MB | Uso normal. Instala na sua pasta de usuário, **sem pedir administrador**, cria os atalhos e atualiza uma instalação anterior sem apagar suas listas. |
+| [**ConfigCelular-6.0-portatil.zip**](https://github.com/satoshigynn/config-celular/releases/download/v6.0/ConfigCelular-6.0-portatil.zip) | 58 MB | Sem instalar nada. Descompacte onde quiser e rode o `Abrir Painel.exe` — dá para levar num pendrive. |
+| [SHA256SUMS.txt](https://github.com/satoshigynn/config-celular/releases/download/v6.0/SHA256SUMS.txt) | — | Conferir se o download veio íntegro. |
 
 Já vem com ADB, scrcpy e Node embutidos: não precisa instalar mais nada.
 
-Para conferir o download:
+Para conferir o download, no PowerShell:
 
-```bash
+```powershell
 Get-FileHash ConfigCelular-6.0-instalador.exe -Algorithm SHA256
 ```
+
+O resultado tem que ser igual à linha correspondente do `SHA256SUMS.txt`.
 
 ---
 

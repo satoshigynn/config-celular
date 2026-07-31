@@ -84,6 +84,25 @@ foreach ($f in ($assets + $notas)) {
 }
 Ok "$($assets.Count) arquivos prontos"
 
+# --------------------------------------------------- 0. links do README ------
+# Os botoes de download do README apontam para a tag da versao. Presos numa
+# versao antiga, o botao principal entrega o arquivo errado - erro que so
+# aparece quando alguem reclama. Reescreve para a versao que esta sendo
+# publicada, e o commit do fim leva a mudanca junto.
+Passo 'Links de download do README'
+$readme = Join-Path $base 'README.md'
+$antes = [System.IO.File]::ReadAllText($readme)
+$depois = $antes
+$depois = [regex]::Replace($depois, 'releases/download/v[0-9][0-9.]*/', "releases/download/$tag/")
+$depois = [regex]::Replace($depois, 'ConfigCelular-[0-9][0-9.]*-(instalador\.exe|portatil\.zip)', "ConfigCelular-$Versao-`$1")
+$depois = [regex]::Replace($depois, '\*\*vers[aã]o [0-9][0-9.]*\*\*', "**versão $Versao**")
+if ($depois -ne $antes) {
+  [System.IO.File]::WriteAllText($readme, $depois, (New-Object System.Text.UTF8Encoding($false)))
+  Ok "atualizados para $tag"
+} else {
+  Ok "ja apontavam para $tag"
+}
+
 # --------------------------------------------------------------- 1. Release --
 Passo "Release $tag"
 Rodar gh release view $tag | Out-Null
@@ -156,14 +175,14 @@ const get=(u,n=0)=>new Promise((res,rej)=>{ if(n>5) return rej(new Error("redire
 
 # --------------------------------------------------------- 4. commit do json -
 Passo 'Commit do catalogo'
-Rodar git -C $base add publicar/apks.json | Out-Null
+Rodar git -C $base add publicar/apks.json README.md | Out-Null
 Rodar git -C $base diff --cached --quiet | Out-Null
 if ($LASTEXITCODE -eq 0) {
-  Ok 'catalogo ja estava igual - nada a commitar'
+  Ok 'catalogo e README ja estavam iguais - nada a commitar'
 } else {
   $vWa = ($cat.apks | Where-Object { $_.arquivo -eq 'WhatsApp.apk' }).versionName
   $vTg = ($cat.apks | Where-Object { $_.arquivo -eq 'Telegram.apk' }).versionName
-  Rodar git -C $base commit -q -m "apks: catalogo da nuvem atualizado (WhatsApp $vWa, Telegram $vTg)" | Out-Null
+  Rodar git -C $base commit -q -m "release $tag`: catalogo da nuvem (WhatsApp $vWa, Telegram $vTg) e links do README" | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'falha ao commitar o catalogo' }
   Rodar git -C $base push origin main | ForEach-Object { "   $_" }
   if ($LASTEXITCODE -ne 0) { throw 'falha ao enviar o commit do catalogo' }
