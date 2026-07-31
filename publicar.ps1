@@ -71,8 +71,11 @@ if (-not $Notas) { $Notas = "Versao $Versao" }
 # ------------------------------------------------------- lista de arquivos --
 # Raiz: os scripts do setup e os dois documentos.
 $itens = @()
+# "publicar*.ps1" sao ferramentas de manutencao (gerar pacote, catalogo de APK,
+# Release). Nao sao do programa: se entrassem no manifesto, todo usuario
+# baixaria os scripts de publicacao junto com a atualizacao.
 $itens += Get-ChildItem -LiteralPath $base -File -Filter *.ps1 |
-          Where-Object { $_.Name -ne 'publicar.ps1' }
+          Where-Object { $_.Name -notlike 'publicar*.ps1' }
 $itens += Get-ChildItem -LiteralPath $base -File |
           Where-Object { $_.Name -in @('LEIA-ME.txt', 'MANUAL-PAINEL.txt') }
 
