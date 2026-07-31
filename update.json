@@ -1,0 +1,4 @@
+{
+  "_comentario": "Endereco de onde o painel baixa as atualizacoes. Deve apontar para a pasta que contem o versao.json (o RAW do GitHub). Se mudar o nome do repositorio/branch, ajuste aqui e gere o instalador de novo.",
+  "baseUrl": "https://raw.githubusercontent.com/satoshigynn/config-celular/main/publicar"
+}

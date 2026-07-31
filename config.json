@@ -1,0 +1,98 @@
+{
+  "_comentario": "Listas usadas pelo setup-celular.ps1. Editavel aqui ou pelo painel. Regex em 'protect/bloatPatterns/keepThirdParty'; nomes EXATOS em 'forceRemove/disableServices'. Se este arquivo faltar, o script usa os padroes internos.",
+  "protect": [
+    "^com\\.android\\.",
+    "^com\\.google\\.android\\.(gms|gsf|googlequicksearchbox|packageinstaller|webview|tts|networkstack)",
+    "android$",
+    "^android\\b",
+    "launcher",
+    "systemui",
+    "settings",
+    "telephony",
+    "telecom",
+    "dialer",
+    "contacts",
+    "mms",
+    "messaging",
+    "inputmethod",
+    "keyboard",
+    "providers",
+    "permission",
+    "wifi",
+    "bluetooth",
+    "nfc",
+    "camera2?$",
+    "soundrecorder",
+    "com\\.heytap\\.market",
+    "com\\.coloros\\.(phonemanager|safecenter|securitypermission|filemanager)",
+    "com\\.coloros\\.gallery3d",
+    "com\\.realme\\.backuprestore",
+    "com\\.oplus\\.",
+    "com\\.oppo\\.ota",
+    "^com\\.facebook\\.katana$",
+    "^com\\.facebook\\.lite$",
+    "^com\\.facebook\\.adsmanager$",
+    "^com\\.facebook\\.pages\\.app$"
+  ],
+  "bloatPatterns": [
+    "^com\\.facebook\\.",
+    "^com\\.booking$",
+    "com\\.heytap\\.(browser|pictorial|reader|music|cloud|health|themestore)",
+    "com\\.coloros\\.(video|weather2|weather\\.service|childrenspace|operationManual|backuprestore\\.romupdate)",
+    "com\\.oppo\\.quicksearchbox",
+    "com\\.realme\\.(as\\.music|smartdrive|moviestudio)",
+    "com\\.opos\\.",
+    "com\\.coloros\\.assistantscreen"
+  ],
+  "keepThirdParty": [
+    "com\\.whatsapp",
+    "org\\.telegram",
+    "com\\.oasisfeng\\.island",
+    "com\\.pengyou\\.cloneapp",
+    "com\\.webviewtest\\.app"
+  ],
+  "forceRemove": [
+    "com.google.android.apps.tachyon",
+    "com.oplus.gamespace",
+    "com.google.android.youtube",
+    "com.google.android.apps.youtube.music",
+    "com.google.android.videos",
+    "com.google.android.apps.subscriptions.red",
+    "com.fitbit.FitbitMobile",
+    "com.linkedin.android"
+  ],
+  "disableServices": [
+    "com.nearme.statistics.rom"
+  ],
+  "cloneApps": [
+    {
+      "name": "WhatsApp",
+      "pkgs": [
+        "com.whatsapp"
+      ]
+    },
+    {
+      "name": "WhatsApp Business",
+      "pkgs": [
+        "com.whatsapp.w4b"
+      ]
+    },
+    {
+      "name": "Telegram",
+      "pkgs": [
+        "org.telegram.messenger.web",
+        "org.telegram.messenger"
+      ]
+    }
+  ],
+  "nativeCloneApps": [
+    {
+      "name": "WhatsApp",
+      "pkg": "com.whatsapp"
+    },
+    {
+      "name": "WhatsApp Business",
+      "pkg": "com.whatsapp.w4b"
+    }
+  ]
+}

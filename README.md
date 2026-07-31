@@ -1,90 +1,173 @@
-<h1 align="center">📱 Config Celular</h1>
+# Config Celular
 
-<p align="center">
-  Ferramenta portátil para configurar celulares Android (realme/ColorOS e outros) via USB —
-  limpeza de bloatware, instalação de apps, clones, tema escuro e muito mais, tudo por um painel local.
-</p>
+Gerenciador de aparelhos Android para Windows, com **espelhamento de tela
+controlável** rodando dentro do navegador. Painel local em Node, sem nenhuma
+dependência de npm.
 
-<p align="center">
-  <a href="https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip">
-    <img src="https://img.shields.io/badge/⬇%20BAIXAR-Instalador%20(Windows)-2ea44f?style=for-the-badge" alt="Baixar">
-  </a>
-</p>
+Feito para preparar aparelhos em série — debloat, instalação de apps, permissões,
+bateria, tema — mas serve para o uso diário: espelhar, capturar, transferir
+arquivos e mandar comandos ADB.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/vers%C3%A3o-5.0-blue"> 
-  <img src="https://img.shields.io/badge/plataforma-Windows-lightgrey"> 
-  <img src="https://img.shields.io/badge/celular-Android-green">
-</p>
+Funciona bem em realme/ColorOS (recursos completos) e em outras marcas —
+Samsung, Xiaomi, Motorola, Pixel (as etapas exclusivas do realme são puladas
+sozinhas).
 
 ---
 
-## ⬇️ Download
+## O espelhamento
 
-**[» Baixar (ConfigCelular-Setup.zip) «](https://github.com/satoshigynn/config-celular/releases/latest/download/ConfigCelular-Setup.zip)**
+Não é o `scrcpy.exe` aberto numa janela à parte. O servidor Node **fala o
+protocolo binário do scrcpy** direto:
 
-Depois de baixar:
-1. **Extraia o .zip** — quando pedir **senha, digite:** `config`
-2. Execute o **ConfigCelular-Setup.exe** que está dentro.
+```
+adb push scrcpy-server.jar /data/local/tmp
+adb forward tcp:0 localabstract:scrcpy_<scid>
+app_process / com.genymobile.scrcpy.Server <versao> video=true control=true ...
+        │
+        ├── socket de vídeo   → H.264 Annex-B → WebCodecs VideoDecoder → <canvas>
+        └── socket de controle ← toque, teclado, rolagem, clipboard, rotação
+```
 
-> 🔒 **Por que o .zip tem senha?** A senha (`config`) impede que o navegador/antivírus "escaneiem" o instalador e mostrem um **falso alerta de vírus** no download. **Não há vírus** — é só o instalador do programa.
+O resultado é 30–60 fps com controle real (mouse = toque, roda = rolagem, botão
+direito = voltar, teclado digita com acentos), vários aparelhos ao mesmo tempo,
+e o espelho fixado numa coluna visível em todas as telas do painel.
 
-Ou veja todas as versões na página de **[Releases](https://github.com/satoshigynn/config-celular/releases)**.
-
-> É um instalador único e autossuficiente: já vem com o **ADB** e o **Node** embutidos. Não precisa instalar mais nada.
->
-> **Aviso do Windows ao abrir:** se aparecer *"O Windows protegeu o seu PC"*, clique em **"Mais informações" → "Executar assim mesmo"** (o programa não é assinado, mas não tem vírus).
-
----
-
-## ✅ Requisitos
-
-- **PC com Windows** (10 ou 11).
-- **Cabo USB de dados** (não serve cabo só de carga).
-- Celular **Android** com a **Depuração USB** ligada.
+O `scrcpy.exe` continua disponível para o que ele faz melhor: janela nativa e
+gravação de vídeo com áudio.
 
 ---
 
-## 🚀 Como usar
+## Requisitos
 
-### 1) No celular — ligue a Depuração USB
-- **Configurações → Sobre o telefone →** toque **7 vezes** em *"Número da versão"* (ativa as Opções do desenvolvedor).
-- **Opções do desenvolvedor →** ligue **"Depuração USB"**.
-- Conecte o cabo USB e, no popup do celular, toque em **Permitir** (marque *"Sempre permitir deste computador"*).
+- Windows 10/11
+- Navegador com **WebCodecs** (Edge ou Chrome). Sem isso o painel cai num modo
+  simples, de prints sequenciais e sem controle, e avisa na tela.
+- No celular: **Opções do desenvolvedor** e **Depuração USB** ligadas, e o PC
+  autorizado no popup "Permitir".
 
-### 2) No PC — instale e abra
-- Rode o **ConfigCelular-Setup.exe** e conclua a instalação.
-- Abra o atalho **"Config Celular"** (Área de Trabalho). O painel abre no navegador em `http://localhost:8787`.
+ADB, scrcpy e Node vêm embutidos no instalador — não é preciso instalar nada.
 
-### 3) No painel
-- Confira o status do celular no topo: 🟢 verde = pronto para usar.
-- Escolha as etapas (ou um perfil pronto) e clique em **Configurar celular**.
-
----
-
-## ✨ Funcionalidades
-
-- **Configurar** — debloat (remover apps de fábrica/lixo), congelar serviços, instalar APKs (WhatsApp, Telegram, Island…), Island + clones, tema escuro, e perfis prontos (Completo / Celular cru / Só apps).
-- **📱 Gerenciar apps** — instalar, reinstalar, limpar dados e desinstalar apps — **por app ou em lote**.
-- **🛠 Avançado** — diagnóstico visual (bateria/armazenamento/RAM), escanear e gerenciar apps do aparelho, permissões, e editor das listas.
-- **📸 Tela ao vivo** — espelha a tela do celular no painel, ao vivo, com download de print.
-- **⬆ Atualização pela nuvem** — o próprio painel se atualiza (baixa só o que muda), com aviso automático de nova versão.
+> Formatou o celular? A formatação apaga as Opções do desenvolvedor, a Depuração
+> USB e a autorização do PC. Refaça isso no aparelho antes de usar o programa:
+> tudo aqui fala com o celular pelo adb.
 
 ---
 
-## 🔒 Privacidade
+## Como rodar
 
-Tudo roda **localmente** no seu PC (o celular fica no cabo). Nada é enviado para a internet, exceto o download de APKs oficiais e das atualizações do próprio programa quando você pede.
+Instalador: dois cliques em `Abrir Painel.exe`. Abre em `http://localhost:8787`.
+
+A partir do repositório (para desenvolver), é preciso colocar os binários que o
+`.gitignore` mantém de fora:
+
+| Item                          | Onde vai              | Origem                                     |
+|-------------------------------|-----------------------|--------------------------------------------|
+| `adb.exe` + DLLs              | `platform-tools/`     | Android SDK Platform-Tools                 |
+| `scrcpy.exe` + `scrcpy-server`| `scrcpy/`             | [Genymobile/scrcpy][scrcpy] (Apache-2.0)   |
+| `node.exe`                    | raiz                  | Node 24 para Windows                       |
+
+Depois:
+
+```bash
+painel/iniciar-painel.bat
+```
 
 ---
 
-## 🆘 Se o celular não for detectado
+## Estrutura
 
-- Confirme a **Depuração USB** ligada e o popup **"Permitir"** autorizado.
-- Troque o **cabo/porta USB** (use cabo de **dados**).
-- Status *"unauthorized"* = falta tocar em **Permitir** no celular.
-- Alguns PCs precisam do **driver USB** do fabricante (realme/Oppo/Xiaomi).
+```
+painel/
+  server.cjs            ponto de entrada: registra rotas, sobe HTTP + WebSocket
+  server/
+    core.cjs            caminhos, localizador do ADB, log, preferências, exec
+    http.cjs            roteador, arquivos estáticos, SSE, injeção do token
+    ws.cjs              servidor WebSocket RFC 6455 escrito à mão
+    adb.cjs             registro de aparelhos (polling 2,2 s, cache de info)
+    apks.cjs            atualizador de APKs + verificação de assinatura
+    cert-apk.ps1        identidade e validade da assinatura (apksigner + parser)
+    scrcpy/
+      session.cjs       a engine: sobe o servidor, lê o vídeo, gerencia o ciclo
+      control.cjs       as 23 mensagens de controle do protocolo
+      dist.cjs          versão e envio do scrcpy-server.jar
+      native.cjs        scrcpy.exe gerenciado (janela nativa e gravação)
+    routes/             devices, mirror, capture, files, tools, apks, help,
+                        system e legacy (as rotas da v5, intactas)
+  app/
+    main.js             shell da interface, roteamento, atalhos
+    core/               api, estado, tarefas, doca do espelho, ícones, kit
+    player/player.js    decodificador WebCodecs e captura de eventos
+    views/              uma tela por arquivo
+    styles/             tokens (temas e cores) + folha principal
+```
+
+Scripts de setup na raiz: `setup-celular.ps1` (etapas), `gerenciar-app.ps1`,
+`extrair-apk.ps1`, `atualizar-apks.ps1`, `restaurar.ps1`.
 
 ---
 
-<sub>Ferramenta de uso local. A pasta `publicar/` deste repositório contém os arquivos usados pela atualização automática do painel.</sub>
+## Segurança
+
+O painel roda em `localhost`, mas isso sozinho não protege: qualquer página
+aberta no navegador poderia mandar requisições para ele. Por isso:
+
+- **token de sessão** gerado a cada inicialização, injetado no HTML e exigido em
+  toda chamada de API (sem ele, `401`);
+- **conferência de `Host`** contra rebinding de DNS;
+- **conferência de `Origin`**;
+- sem `Access-Control-Allow-Origin`.
+
+APKs baixados pelo atualizador passam por verificação de assinatura antes de
+serem adotados: o `apksigner` confere se o conteúdo bate com a assinatura, e o
+certificado é comparado com o do arquivo que já estava na pasta. Veredito
+negativo é terminal — não existe caminho alternativo que aceite o pacote.
+
+---
+
+## Atualização online
+
+O painel se atualiza sozinho a partir da pasta [`publicar/`](publicar) deste
+repositório:
+
+1. `update.json` aponta para o RAW do GitHub;
+2. o painel baixa `publicar/versao.json` — `{versao, notas, arquivos:[{caminho, sha256}]}`;
+3. compara o `sha256` de cada arquivo com o local e baixa só os diferentes;
+4. confere o hash de novo antes de gravar.
+
+Só trafegam arquivos de texto/código (`ps1 cjs js mjs html css json txt bat md`),
+sempre para dentro da pasta do programa. Arquivos que o usuário edita
+(`config.json`, `apps-catalog.json`, `painel-settings.json`, `apks-fontes.json`)
+**não** entram no manifesto: uma atualização nunca sobrescreve as suas listas.
+
+Para gerar um lançamento:
+
+```bash
+powershell -ExecutionPolicy Bypass -File publicar.ps1 -Simular
+```
+
+Confira a lista, tire o `-Simular`, e faça o commit.
+
+---
+
+## Licença
+
+[MIT](LICENSE) — use, copie e modifique à vontade, mantendo o aviso de
+copyright.
+
+Os componentes de terceiros que vêm junto no instalador seguem as licenças
+deles, listadas no fim do [LICENSE](LICENSE): scrcpy (Apache-2.0),
+Platform-Tools (Google), Node.js (MIT) e a fonte Copyduck.
+
+---
+
+## Créditos
+
+- [scrcpy][scrcpy] — Genymobile, Apache-2.0. É dele o `scrcpy-server` e o
+  protocolo que o painel implementa.
+- [Android SDK Platform-Tools][pt] — Google (`adb`, `apksigner`).
+- Fonte **Copyduck**, de Khurasan, obtida no [dafont][df]. Fica embutida em
+  `painel/app/assets/fonts/`; se sumir, a marca volta para a Bahnschrift.
+
+[scrcpy]: https://github.com/Genymobile/scrcpy
+[pt]: https://developer.android.com/tools/releases/platform-tools
+[df]: https://www.dafont.com/copyduck.font

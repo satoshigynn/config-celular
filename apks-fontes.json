@@ -1,0 +1,84 @@
+{
+  "_comentario": "De onde cada APK e atualizado. 'auto': false = nunca baixar sozinho. Tipos de fonte: 'direto' (URL fixa oficial), 'github' (ultimo release do repositorio), 'device' (extrai de um celular conectado que tenha o app), 'manual' (so voce coloca o arquivo).",
+  "verificarAssinatura": true,
+  "_verificarAssinatura": "Antes de substituir um APK, compara o certificado de assinatura do arquivo baixado com o do APK atual. Se nao bater, o download e descartado e o APK antigo e mantido. E o que impede instalar uma versao adulterada.",
+  "apps": [
+    {
+      "id": "whatsapp",
+      "nome": "WhatsApp",
+      "pkg": "com.whatsapp",
+      "arquivo": "WhatsApp.apk",
+      "bundle": "whatsapp-bundle",
+      "auto": true,
+      "fonte": { "tipo": "direto", "url": "https://www.whatsapp.com/android/current/WhatsApp.apk", "origem": "oficial (whatsapp.com)" }
+    },
+    {
+      "id": "telegram",
+      "nome": "Telegram",
+      "pkg": "org.telegram.messenger",
+      "arquivo": "Telegram.apk",
+      "auto": true,
+      "fonte": { "tipo": "direto", "url": "https://telegram.org/dl/android/apk", "origem": "oficial (telegram.org)" }
+    },
+    {
+      "id": "island",
+      "nome": "Island",
+      "pkg": "com.oasisfeng.island",
+      "arquivo": "Island.apk",
+      "auto": true,
+      "fonte": { "tipo": "github", "repo": "oasisfeng/island", "origem": "oficial (releases do GitHub)" }
+    },
+    {
+      "id": "wabusiness",
+      "nome": "WhatsApp Business",
+      "pkg": "com.whatsapp.w4b",
+      "arquivo": "WhatsAppBusiness.apk",
+      "bundle": "wa-business-bundle",
+      "auto": true,
+      "fonte": { "tipo": "device", "origem": "extraido de um celular conectado" }
+    },
+    {
+      "id": "facebook",
+      "nome": "Facebook",
+      "pkg": "com.facebook.katana",
+      "arquivo": "Facebook.apk",
+      "bundle": "facebook-bundle",
+      "auto": true,
+      "fonte": { "tipo": "device", "origem": "extraido de um celular conectado" }
+    },
+    {
+      "id": "facebooklite",
+      "nome": "Facebook Lite",
+      "pkg": "com.facebook.lite",
+      "arquivo": "FacebookLite.apk",
+      "auto": true,
+      "fonte": { "tipo": "device", "origem": "extraido de um celular conectado" }
+    },
+    {
+      "id": "metaads",
+      "nome": "Anuncios da Meta",
+      "pkg": "com.facebook.adsmanager",
+      "arquivo": "MetaAds.apk",
+      "auto": true,
+      "fonte": { "tipo": "device", "origem": "extraido de um celular conectado" }
+    },
+    {
+      "id": "metabusiness",
+      "nome": "Meta Business Suite",
+      "pkg": "com.facebook.pages.app",
+      "arquivo": "MetaBusinessSuite.apk",
+      "bundle": "metabusiness-bundle",
+      "auto": true,
+      "fonte": { "tipo": "device", "origem": "extraido de um celular conectado" }
+    },
+    {
+      "id": "webviewtest",
+      "nome": "WebView Test",
+      "pkg": "com.webviewtest.app",
+      "arquivo": "WebViewTest.apk",
+      "auto": false,
+      "fonte": { "tipo": "manual", "origem": "app proprio - so voce coloca o arquivo" },
+      "nota": "Fora da atualizacao automatica de proposito: e um app seu, nao tem versao publica para baixar."
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+==========================================================
+  CONFIG CELULAR - gerenciador de aparelhos Android (v6.0)
+==========================================================
+
+Esta pasta e AUTOSSUFICIENTE: ja vem com o ADB, o scrcpy e o Node
+embutidos. Para usar em OUTRO PC (Windows), copie a pasta inteira.
+Nao precisa instalar nada.
+
+Funciona em celulares realme/ColorOS (recursos completos) e tambem
+em outras marcas - Samsung, Xiaomi, Motorola, etc. (as etapas
+exclusivas do realme sao puladas automaticamente).
+
+----------------------------------------------------------
+NOVIDADES DA VERSAO 6.0
+----------------------------------------------------------
+  * ESPELHAMENTO DE VERDADE. O programa fala o protocolo do scrcpy
+    diretamente: envia o scrcpy-server para o aparelho, abre o tunel
+    ADB e recebe o video H.264, que o navegador decodifica por
+    WebCodecs. Resultado: 30-60 fps com CONTROLE por mouse e teclado.
+    (A versao anterior tirava um print a cada 1,5 s, sem controle.)
+  * Interface nova: menu lateral, barra superior, cartoes, tema claro
+    e escuro, 5 cores de destaque, busca por comando (Ctrl+K) e
+    atalhos de teclado (F1 lista todos).
+  * Captura: print em PNG e gravacao de video COM AUDIO (mp4/mkv),
+    com pasta de destino escolhida por voce.
+  * Arquivos: arraste APKs (varios de uma vez) para instalar, envie
+    arquivos para o celular, navegue e exporte o que esta la dentro.
+  * Ferramentas ADB: recovery, bootloader, fastboot, sideload,
+    desinstalar/desativar apps, limpar cache, alterar resolucao,
+    shell interativo e comandos personalizados.
+  * Wi-Fi: liga o ADB por rede num clique, salva os aparelhos
+    conhecidos e reconecta sozinho quando eles voltam.
+  * Varios aparelhos ao mesmo tempo, cada um com sua sessao.
+  * Seguranca: o painel deixou de aceitar chamadas de outros sites
+    (antes qualquer pagina aberta no navegador podia dar comandos no
+    seu celular). Agora exige token de sessao e origem local.
+
+----------------------------------------------------------
+COMO USAR (rapido)
+----------------------------------------------------------
+0) SE VOCE ACABOU DE FORMATAR O CELULAR, leia isto antes.
+   A formatacao APAGA tres coisas de que este programa depende:
+     - as Opcoes do desenvolvedor (voltam a ficar escondidas)
+     - a Depuracao USB (volta desligada)
+     - a autorizacao deste PC (o popup "Permitir" vai aparecer de novo)
+   Enquanto isso nao for refeito A MAO no aparelho, NADA aqui funciona:
+   nem o painel, nem o setup, nem o espelhamento, nem o DIAGNOSTICO da
+   tela Ajuda -- todos falam com o celular pelo adb, e o adb so existe
+   depois da Depuracao USB. Ou seja, o passo 1 abaixo nao e' so para o
+   primeiro uso: refaca a cada formatacao.
+
+1) No CELULAR, ative a Depuracao USB:
+   - Configuracoes > Sobre o telefone > toque 7x em "Numero da versao"
+     (ativa as Opcoes do desenvolvedor)
+   - Opcoes do desenvolvedor > ligar "Depuracao USB"
+   - Conecte o cabo USB (cabo de DADOS) e, no popup do celular, toque
+     em "Permitir" (marque "Sempre permitir deste computador").
+
+2) No PC: de 2 cliques em "Abrir Painel.exe" (ou entre na pasta
+   "painel" e use iniciar-painel.bat).
+   Abre sozinho no navegador em:  http://localhost:8787
+
+   Use Edge ou Chrome. O espelhamento precisa de WebCodecs; em
+   navegadores sem esse recurso o painel cai no modo simples
+   (prints sequenciais, sem controle) e avisa na tela.
+
+3) O aparelho aparece na tela "Dispositivos". Se houver mais de um,
+   clique no que voce quer usar - todas as telas passam a agir nele.
+
+----------------------------------------------------------
+AS TELAS
+----------------------------------------------------------
+  DISPOSITIVOS  Aparelhos conectados com nome, modelo, fabricante,
+                Android, serial, estado, USB/Wi-Fi, bateria,
+                resolucao, RAM e armazenamento. Tambem liga o Wi-Fi
+                e guarda os aparelhos conhecidos.
+
+  ESPELHAMENTO  Tela ao vivo com controle. Mouse = toque, roda =
+                rolagem, botao direito = voltar, botao do meio =
+                inicio, teclado digita no aparelho (com acentos).
+                Ajuste resolucao, FPS, bitrate e codec na hora.
+                "Ver todos" espelha varios aparelhos lado a lado.
+                F11 = tela cheia. "Janela nativa" abre o scrcpy.
+
+                ESPELHO FIXADO (padrao): o celular fica numa coluna
+                propria, ao lado do Log ao vivo, VISIVEL EM TODAS AS
+                TELAS - da para mexer no aparelho enquanto configura,
+                instala apps ou usa o shell. Ctrl+M fixa/solta.
+
+                AUTOMATICO (padrao): o espelho liga sozinho assim que
+                o aparelho aparece e RELIGA SOZINHO se a conexao cair
+                (cabo, troca para Wi-Fi, aparelho reiniciando), com
+                espera crescente ate 12s. Da para desligar em
+                Configuracoes > Padroes do espelhamento.
+                Arraste a borda esquerda da coluna para mudar a
+                largura. Solto, o espelho volta a ocupar a tela de
+                Espelhamento inteira.
+
+  CONFIGURAR    O setup de sempre (debloat, APKs, Island, tema
+                escuro, clonador nativo, permissoes, bateria...),
+                com os mesmos perfis Completo / Celular cru / So apps
+                e o modo Simular (dry-run).
+
+  GERENCIAR     Instalar, reinstalar, limpar dados e desinstalar os
+   APPS         apps do painel, no perfil principal e nos perfis de
+                trabalho (Island e o clonador nativo do realme).
+
+  CAPTURA       Print da tela, gravacao de video com audio, gravacao
+                so de audio e a pasta onde tudo e salvo.
+
+  ARQUIVOS      Arraste APKs para instalar (varios de uma vez), envie
+                arquivos, navegue pelo celular e exporte para o PC.
+
+  FERRAMENTAS   Reiniciar (normal, recovery, bootloader, fastboot,
+                sideload), desinstalar/desativar/limpar apps do
+                sistema, limpar cache de todos, alterar resolucao e
+                densidade, logcat e shell com comandos livres.
+
+  AVANCADO      Escaneia todos os apps e classifica pelo risco de
+                remocao, edita as listas do config.json, extrai APK e
+                adiciona apps ao painel.
+
+  AJUDA         DIAGNOSTICO que testa o PC e o aparelho e diz o que
+                esta faltando (inclusive se a marca esta bloqueando a
+                instalacao de apps ou a alteracao de permissoes);
+                guia passo a passo por fabricante - Xiaomi/Redmi/POCO,
+                Samsung, realme/OPPO, Motorola, Pixel; catalogo de
+                erros frequentes com a solucao de cada um; e botoes
+                que abrem a tela certa direto no celular.
+
+  CONFIGURACOES Tema, cor, densidade, padroes do espelhamento, Wi-Fi,
+                limpeza da pasta do programa e atualizacao.
+
+----------------------------------------------------------
+ATALHOS
+----------------------------------------------------------
+  Ctrl+K  busca de comandos, telas e aparelhos
+  Ctrl+M  fixa/solta o espelho ao lado do log
+  Ctrl+L  mostra/esconde o log ao vivo
+  Ctrl+J  alterna tema claro/escuro
+  Ctrl+B  recolhe o menu lateral
+  Ctrl+D  troca de aparelho
+  F11     tela cheia do espelho
+  F1      lista completa de atalhos
+  Esc     cancela a tarefa em andamento
+
+----------------------------------------------------------
+O QUE TEM NA PASTA
+----------------------------------------------------------
+  Abrir Painel.exe     -> inicia o painel
+  painel\              -> a interface e o servidor local
+    server.cjs           ponto de entrada
+    server\              modulos do servidor (adb, scrcpy, rotas)
+    app\                 a interface (telas, estilos, player)
+    app\assets\fonts\    Copyduck (a fonte da marca), embutida - o painel
+                         nao busca fonte na internet
+    app\assets\          COLOQUE AQUI o arquivo do logo com o nome
+                         logo.png (tambem aceita logo.webp, logo.svg
+                         ou logo.jpg). Assim que existir, ele:
+                           - vira a marca no canto superior esquerdo
+                           - vira o icone da aba do navegador
+                           - aparece como MARCA D'AGUA ao fundo da
+                             doca de "Log ao vivo"
+                         A forca da marca d'agua (discreta / media /
+                         forte / desligada) fica em Configuracoes >
+                         Aparencia. Sem arquivo, o painel usa o icone
+                         embutido e nao desenha marca d'agua nenhuma.
+  scrcpy\              -> scrcpy embutido (cliente + scrcpy-server)
+  platform-tools\      -> ADB embutido
+  node.exe             -> Node embutido
+  setup-celular.ps1    -> script principal do setup (etapas)
+  gerenciar-app.ps1    -> instala/reinstala/limpa/desinstala UM app
+  extrair-apk.ps1      -> extrai o APK de um app instalado
+  atualizar-apks.ps1   -> baixa/atualiza os APKs oficiais
+  restaurar.ps1        -> desfaz o debloat de um aparelho
+  config.json          -> listas editaveis (debloat/proteger/clonar)
+  apps-catalog.json    -> apps adicionados por voce no painel
+  painel-settings.json -> suas preferencias do painel
+  apks\                -> APKs e _versoes.json
+  capturas\            -> prints e gravacoes
+  logs\                -> log de cada aparelho + logs\_painel (programa)
+
+----------------------------------------------------------
+SE O CELULAR NAO FOR DETECTADO
+----------------------------------------------------------
+  - Confirme a "Depuracao USB" ligada e o popup "Permitir" autorizado.
+  - Troque o cabo/porta USB (use cabo de DADOS, nao so de carga).
+  - Status "autorize no celular" = falta tocar em PERMITIR.
+  - Alguns PCs precisam do driver USB da realme/Oppo/Xiaomi. Se o
+    Windows nao reconhecer, instale o driver USB do fabricante.
+
+----------------------------------------------------------
+OBSERVACOES IMPORTANTES
+----------------------------------------------------------
+  - GERENCIAR PERMISSOES so funciona em aparelhos que permitem alterar
+    permissoes via ADB. Xiaomi/MIUI/HyperOS (e alguns ColorOS) BLOQUEIAM
+    isso: para liberar, ligue "Depuracao USB (Configuracoes de
+    seguranca)" nas Opcoes do desenvolvedor (exige conta Xiaomi).
+    Em Samsung/Pixel/AOSP funciona normal.
+
+  - GRAVACAO: sempre encerre pelo botao "Parar". O arquivo so e
+    fechado corretamente quando a gravacao termina do jeito certo.
+    Enquanto grava sem previa, existe uma janela do scrcpy posicionada
+    fora da area visivel - e ela que permite o encerramento limpo.
+
+  - APAGAR A TELA pelo espelhamento nao funciona em alguns ColorOS/
+    MIUI: essas ROMs bloqueiam o comando de energia da tela via ADB.
+
+  - Tudo roda LOCALMENTE no PC (o celular fica no cabo ou na sua rede).
+    Nada e enviado para a internet, exceto o download dos APKs oficiais
+    e a atualizacao do programa, quando voce pede.
+
+  - Na 1a vez num modelo novo, marque "Simular (dry-run)" antes de
+    rodar de verdade, para revisar o que sera feito.
+
+  - O codigo deste programa e livre, sob licenca MIT (veja o arquivo
+    LICENSE). Os componentes de terceiros que vem junto seguem as
+    licencas deles, listadas no fim do mesmo arquivo.
+
+  - O scrcpy embutido e do projeto Genymobile/scrcpy (Apache-2.0):
+    https://github.com/Genymobile/scrcpy
+
+  - A fonte da marca e a Copyduck, de Khurasan, obtida em
+    dafont.com/copyduck.font. O autor declara uso livre pessoal E
+    comercial. Ela fica embutida em painel\app\assets\fonts\ - se o
+    arquivo sumir, a marca volta para a Bahnschrift do Windows.

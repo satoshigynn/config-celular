@@ -1,0 +1,239 @@
+/* ==========================================================================
+   tokens.css - o vocabulario visual do programa
+   --------------------------------------------------------------------------
+   PROBLEMA QUE ISTO RESOLVE: a versao antiga tinha cores soltas no meio do
+   HTML (#202a37, rgba(52,211,153,.06), --blue guardando um bege...), restos de
+   dois temas diferentes misturados. Aqui existe UMA fonte de verdade: tudo que
+   e cor, raio, sombra ou tempo de animacao sai daqui.
+
+   Tema: :root[data-theme="dark"|"light"] + acento em [data-accent].
+   ========================================================================== */
+
+/* ---------------------------------------------------------------- fontes --
+   Copyduck, por Khurasan (dafont.com/copyduck.font) - o autor declara uso
+   livre pessoal e comercial. Fica embutida na pasta do programa: nao depende
+   de internet nem de instalar nada no Windows. */
+@font-face {
+  font-family: "Copyduck";
+  src: url("/app/assets/fonts/Copyduck.otf") format("opentype"),
+       url("/app/assets/fonts/Copyduck.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;   /* enquanto carrega, mostra a fonte reserva */
+}
+
+:root {
+  /* ---- tipografia -------------------------------------------------------- */
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SF Mono", monospace;
+  /* fonte da marca. Se o arquivo da Copyduck sumir, cai na Bahnschrift, que
+     acompanha o Windows - a marca nunca fica sem estilo. */
+  --font-brand: "Copyduck", "Bahnschrift SemiBold Condensed", "Bahnschrift",
+                "Franklin Gothic Demi", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+
+  --fs-xs: 11px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-lg: 15px;
+  --fs-xl: 18px;
+  --fs-2xl: 22px;
+  --fs-3xl: 28px;
+
+  /* ---- espacamento (escala de 4) ---------------------------------------- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* ---- raios ------------------------------------------------------------- */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-full: 999px;
+
+  /* ---- movimento --------------------------------------------------------- */
+  --t-fast: 120ms;
+  --t: 180ms;
+  --t-slow: 280ms;
+  --ease: cubic-bezier(.2, .8, .3, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+
+  /* ---- medidas do layout ------------------------------------------------- */
+  --sidebar-w: 244px;
+  --sidebar-w-min: 68px;
+  --topbar-h: 54px;
+  --dock-w: 320px;
+
+  color-scheme: dark;
+}
+
+/* ==========================  TEMA ESCURO (padrao)  ======================== */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:            #16181d;
+  --bg-elevated:   #1b1e24;
+  --surface:       #1e2127;
+  --surface-2:     #23272e;
+  --card:          #1e2127;
+  --card-hover:    #262a32;
+  --inset:         #131519;
+
+  --line:          #2c313a;
+  --line-strong:   #3a4049;
+
+  --text:          #e8eaed;
+  --text-dim:      #9aa3af;
+  --text-faint:    #6b7280;
+
+  --ok:            #4ade80;
+  --ok-soft:       rgba(74, 222, 128, .14);
+  --warn:          #fbbf24;
+  --warn-soft:     rgba(251, 191, 36, .14);
+  --err:           #f87171;
+  --err-soft:      rgba(248, 113, 113, .14);
+  --info:          #60a5fa;
+  --info-soft:     rgba(96, 165, 250, .14);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .28);
+  --shadow-2: 0 4px 14px -4px rgba(0, 0, 0, .45);
+  --shadow-3: 0 18px 48px -18px rgba(0, 0, 0, .75);
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  --scrim: rgba(8, 9, 12, .62);
+  --glass: rgba(30, 33, 39, .82);
+
+  --logo-watermark: .08;   /* forca da marca d'agua no fundo do log */
+
+  /* cores da marca, tiradas do logo: prata no "CONFIG", dourado no "CELULAR" */
+  --brand-1: #eef1f5;
+  --brand-2: #f0b429;
+}
+
+/* ==========================  TEMA CLARO  ================================== */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg:            #f4f5f7;
+  --bg-elevated:   #ffffff;
+  --surface:       #ffffff;
+  --surface-2:     #f0f2f5;
+  --card:          #ffffff;
+  --card-hover:    #f6f7f9;
+  --inset:         #f7f8fa;
+
+  --line:          #e2e5ea;
+  --line-strong:   #cbd1da;
+
+  --text:          #1b1f26;
+  --text-dim:      #5c6572;
+  --text-faint:    #8a929e;
+
+  --ok:            #15803d;
+  --ok-soft:       rgba(21, 128, 61, .10);
+  --warn:          #b45309;
+  --warn-soft:     rgba(180, 83, 9, .10);
+  --err:           #b91c1c;
+  --err-soft:      rgba(185, 28, 28, .10);
+  --info:          #1d4ed8;
+  --info-soft:     rgba(29, 78, 216, .10);
+
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow-2: 0 4px 14px -4px rgba(16, 24, 40, .12);
+  --shadow-3: 0 18px 48px -18px rgba(16, 24, 40, .28);
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  --scrim: rgba(20, 24, 31, .38);
+  --glass: rgba(255, 255, 255, .85);
+
+  --logo-watermark: .10;   /* no tema claro precisa de um pouco mais */
+
+  --brand-1: #1b1f26;      /* prata some no branco: usa o texto escuro */
+  --brand-2: #b07d09;
+}
+
+/* intensidade da marca d'agua, escolhida em Configuracoes > Aparencia */
+:root[data-watermark="off"]     { --logo-watermark: 0; }
+:root[data-watermark="discreta"] { --logo-watermark: .07; }
+:root[data-watermark="media"]    { --logo-watermark: .16; }
+:root[data-watermark="forte"]    { --logo-watermark: .28; }
+:root[data-theme="light"][data-watermark="discreta"] { --logo-watermark: .09; }
+:root[data-theme="light"][data-watermark="media"]    { --logo-watermark: .18; }
+:root[data-theme="light"][data-watermark="forte"]    { --logo-watermark: .30; }
+
+/* ==========================  ACENTOS  ===================================== */
+:root, :root[data-accent="coral"] {
+  --accent:        #d97757;
+  --accent-hover:  #e08a6e;
+  --accent-press:  #bf5f3a;
+  --accent-soft:   rgba(217, 119, 87, .16);
+  --accent-line:   rgba(217, 119, 87, .40);
+  --on-accent:     #23100a;
+}
+:root[data-accent="azul"] {
+  --accent:        #4c8dff;
+  --accent-hover:  #6ba0ff;
+  --accent-press:  #3a72d8;
+  --accent-soft:   rgba(76, 141, 255, .16);
+  --accent-line:   rgba(76, 141, 255, .40);
+  --on-accent:     #06152e;
+}
+:root[data-accent="verde"] {
+  --accent:        #34c98a;
+  --accent-hover:  #4dd79b;
+  --accent-press:  #26a06d;
+  --accent-soft:   rgba(52, 201, 138, .16);
+  --accent-line:   rgba(52, 201, 138, .40);
+  --on-accent:     #052117;
+}
+:root[data-accent="roxo"] {
+  --accent:        #a78bfa;
+  --accent-hover:  #b9a2fb;
+  --accent-press:  #8b6ce8;
+  --accent-soft:   rgba(167, 139, 250, .16);
+  --accent-line:   rgba(167, 139, 250, .40);
+  --on-accent:     #170c34;
+}
+:root[data-accent="ambar"] {
+  --accent:        #f0b429;
+  --accent-hover:  #f5c44f;
+  --accent-press:  #d09512;
+  --accent-soft:   rgba(240, 180, 41, .16);
+  --accent-line:   rgba(240, 180, 41, .40);
+  --on-accent:     #2a1e00;
+}
+
+/* no tema claro o acento precisa de mais contraste contra branco */
+:root[data-theme="light"][data-accent="coral"]  { --accent: #c2562f; --accent-hover: #d2653c; --on-accent: #fff; }
+:root[data-theme="light"][data-accent="azul"]   { --accent: #2563eb; --accent-hover: #3b78f0; --on-accent: #fff; }
+:root[data-theme="light"][data-accent="verde"]  { --accent: #12855c; --accent-hover: #169b6c; --on-accent: #fff; }
+:root[data-theme="light"][data-accent="roxo"]   { --accent: #6d43d9; --accent-hover: #7d55e2; --on-accent: #fff; }
+:root[data-theme="light"][data-accent="ambar"]  { --accent: #a56a00; --accent-hover: #bb7a04; --on-accent: #fff; }
+
+/* ==========================  DENSIDADE  =================================== */
+:root[data-density="compacta"] {
+  --fs-md: 12.5px;
+  --fs-lg: 14px;
+  --sp-3: 9px; --sp-4: 12px; --sp-5: 15px; --sp-6: 18px;
+  --topbar-h: 46px;
+}
+
+/* ==========================  ANIMACOES DESLIGADAS  ======================== */
+:root[data-animations="off"] *,
+:root[data-animations="off"] *::before,
+:root[data-animations="off"] *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .001ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

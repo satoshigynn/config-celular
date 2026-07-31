@@ -1,0 +1,402 @@
+==========================================================
+  MANUAL DO PAINEL - Config Celular v6.0
+==========================================================
+Guia funcao por funcao. Para o passo a passo rapido, veja LEIA-ME.txt.
+
+----------------------------------------------------------
+COMO O PROGRAMA E MONTADO
+----------------------------------------------------------
+  Navegador (interface)
+        |  REST para respostas curtas
+        |  SSE  para tarefas longas (log linha a linha)
+        |  WS   para tempo real (eventos, video, shell)
+        v
+  Servidor local Node (painel\server.cjs) - so escuta em 127.0.0.1
+        |
+        +-- adb.cjs      registro de aparelhos e comandos ADB
+        +-- scrcpy\      engine de espelhamento e gravacao
+        +-- routes\      as rotas HTTP, separadas por assunto
+        |
+        v
+  ADB / scrcpy-server / scripts .ps1 -> celular
+
+  A ENGINE DE ESPELHAMENTO, em detalhe:
+    1. envia scrcpy-server para /data/local/tmp do aparelho
+    2. abre o tunel:  adb forward tcp:0 localabstract:scrcpy_<id>
+    3. sobe o servidor:  app_process ... com.genymobile.scrcpy.Server
+    4. conecta 2 sockets: VIDEO e CONTROLE
+    5. le os pacotes H.264 e repassa ao navegador por WebSocket
+    6. escreve toques e teclas no socket de controle
+  Nenhum frame e recodificado no PC: o navegador decodifica o mesmo
+  fluxo que saiu do MediaCodec do celular.
+
+----------------------------------------------------------
+1. DISPOSITIVOS
+----------------------------------------------------------
+  Cada aparelho aparece como um cartao com:
+    nome comercial, modelo, fabricante, marca, Android + API, serial,
+    estado (online / autorize no celular / offline / recovery...),
+    tipo de conexao (USB ou Wi-Fi), bateria com temperatura e status
+    de carga, resolucao, densidade, RAM e armazenamento.
+
+  Clique no cartao para escolher o aparelho ativo. Essa escolha vale
+  para TODAS as telas e tambem para os scripts .ps1 (o programa fixa
+  a variavel ANDROID_SERIAL).
+
+  RENOMEAR
+    Tres caminhos: o lapis no canto do cartao, o botao "Renomear" em
+    Detalhes, ou o lapis na doca do espelho (ali o clique duplo sobre
+    o nome tambem abre). Troca o nome do aparelho por um apelido seu - util quando ha
+    varios modelos iguais na bancada. O apelido aparece no painel
+    inteiro: cartao, barra superior, doca do espelho, e ate nos nomes
+    dos prints e gravacoes (ex.: Loja-1-2026-07-31T06-07-20.png).
+    "Usar o nome original" desfaz.
+    O apelido e guardado pelo SERIAL DE HARDWARE, nao pelo endereco
+    do adb - por isso continua valendo quando o mesmo aparelho
+    conectar por Wi-Fi, onde o "serial" vira IP:porta.
+
+  A lista se atualiza sozinha: o servidor observa o ADB e avisa a
+  interface por WebSocket. Voce nao precisa clicar em "Atualizar".
+
+  CONEXAO SEM FIO
+    "Ligar Wi-Fi neste aparelho" faz tudo: descobre o IP do celular,
+    liga o modo TCP/IP (porta 5555 por padrao) e conecta. Depois disso
+    voce pode tirar o cabo.
+    "Conectar por IP" serve quando voce ja sabe o endereco.
+    Os aparelhos usados ficam salvos em "conhecidos" e sao
+    reconectados sozinhos quando voltam a rede (da para desligar isso
+    em Configuracoes).
+
+----------------------------------------------------------
+2. ESPELHAMENTO
+----------------------------------------------------------
+  ONDE O ESPELHO FICA
+    Existe UMA sessao de espelho, que pode morar em dois lugares:
+      FIXADO (padrao) - coluna propria ao lado do "Log ao vivo",
+        visivel em TODAS as telas. Da para tocar no celular enquanto
+        voce configura, instala apps ou usa o shell.
+      SOLTO - dentro da tela Espelhamento, ocupando o espaco todo.
+    Ctrl+M (ou o botao de espelho na barra superior) alterna. A
+    conexao NAO cai ao trocar: o mesmo elemento so muda de lugar.
+    Arraste a borda esquerda da coluna para mudar a largura - ela e
+    lembrada entre sessoes. A moldura preta encosta na imagem: nao
+    sobra tarja nos lados, em nenhuma largura.
+
+  CONTROLES DO MOUSE
+    clique/arrastar ....... toque e deslize
+    roda .................. rolagem
+    botao direito ......... voltar
+    botao do meio ......... inicio
+  TECLADO
+    teclas de controle (Enter, Backspace, setas, Esc, Tab, F1-F12,
+    Ctrl+C/V/A/X) viram teclas do Android; texto normal e injetado
+    como texto, entao acento e cedilha funcionam.
+  BARRA INFERIOR
+    voltar, inicio, recentes, volume, notificacoes, girar, energia.
+  QUALIDADE
+    resolucao maxima, FPS, bitrate e codec (H.264/H.265). Aplicar
+    reinicia o fluxo por um instante - sao parametros de inicializacao
+    do codificador do aparelho, nao da para mudar no meio.
+    Presets prontos: Leve, Equilibrado, Alta qualidade e Maxima.
+  ACOES RAPIDAS
+    print do frame atual, digitar texto, colar do PC no celular,
+    copiar do celular, apagar/acender a tela.
+  VARIOS APARELHOS
+    "Ver todos os aparelhos" abre um espelho para cada aparelho
+    online, cada um com sua sessao e seus controles.
+  TELA CHEIA
+    F11 ou o botao "Tela cheia". "Janela nativa" abre a janela do
+    scrcpy (util para tela cheia real em outro monitor e para audio).
+
+  Se o navegador nao tiver WebCodecs, o painel avisa e cai no modo
+  simples: prints sequenciais, sem controle.
+
+----------------------------------------------------------
+3. CONFIGURAR (setup-celular.ps1)
+----------------------------------------------------------
+  ONDE FICA O BOTAO DE EXECUTAR
+    No CABECALHO da tela, que gruda no topo: "Simular (dry-run)",
+    "Parar" e "Configurar celular" continuam a um clique mesmo com a
+    pagina rolada ate o fim. Com a simulacao ligada o proprio botao
+    muda para "Simular configuracao", para nao haver duvida do que
+    vai acontecer. Isso vale para todas as telas: o cabecalho e fixo.
+
+  ETAPAS (ligue/desligue cada uma)
+    Remover bloatware ...... apps de fabrica, jogos e lixo
+    Instalar APKs .......... pasta apks\ (WhatsApp, Telegram, Island)
+    WA Business (loja) ..... instala pela loja quando o APK nao serve
+    Island + clones ........ perfil de trabalho com os mensageiros
+    Tema escuro ............ modo noturno do sistema
+    Deixar mais rapido ..... desliga as animacoes do sistema
+    Preparar espelhamento .. mantem a tela ativa enquanto carregando e
+                             CONFERE o que o espelho precisa: /dev/uhid
+                             (teclado e toque virtuais), uiautomator e a
+                             versao do Android. O que nao da para
+                             configurar ele reporta, em vez de deixar
+                             voce descobrir na hora do uso.
+                             Entra nos perfis Completo e Celular cru.
+    Clonador nativo ........ clone do realme para WhatsApp/Business
+    Sugestoes de app off ... desliga "aplicativos sugeridos"
+    Permitir tudo nos apps . concede as permissoes comuns
+    Manter apps vivos ...... ignora a economia de bateria
+
+  PERFIS
+    Completo / Celular cru / So apps / Todas / Nenhuma.
+
+  ANTES DE EXECUTAR o painel confere bateria, tela bloqueada e Wi-Fi,
+  e mostra a lista exata de apps que o debloat vai remover, pedindo
+  confirmacao. Com "Simular (dry-run)" nada e alterado.
+
+  BRILHO E TELA e aplicado a parte, na hora, sem rodar o setup todo.
+
+  FERRAMENTAS DO SETUP
+    Ver estado atual, Atualizar APKs, Restaurar removidos, Atualizar
+    sistema (abre a tela de OTA no celular), Permitir tudo nos apps e
+    Enxugar Facebook (remove os splits de IA do bundle).
+
+----------------------------------------------------------
+4. GERENCIAR APPS
+----------------------------------------------------------
+  Apps agrupados por categoria, com a versao instalada e um aviso
+  quando o APK da pasta e mais novo que o instalado.
+
+  POR APP: Limpar dados / Reinstalar / Desinstalar / Instalar.
+  EM LOTE: marque varios e use Instalar, Reinstalar ou Limpar dados.
+  CLONES: os perfis de trabalho (Island e clone nativo) aparecem em
+  secoes proprias - as acoes ali afetam SOMENTE aquele perfil.
+
+  DIFERENCA IMPORTANTE
+    Limpar dados = apaga conversas, logins e cache; o app continua.
+    Reinstalar   = remove e instala de novo; zera tudo.
+
+  NOTA: o "Clone App" (com.pengyou.cloneapp) foi retirado do painel.
+    O script clones-cloneapp.ps1 continua na pasta do programa, mas
+    nenhuma tela ou rota o chama - da para apagar se quiser.
+    Os "clones" que aparecem aqui sao os PERFIS DE TRABALHO do
+    Android (Island e o clonador nativo do realme), que sao outra
+    coisa e continuam funcionando normalmente.
+
+----------------------------------------------------------
+5. CAPTURA
+----------------------------------------------------------
+  PRINT: PNG direto do aparelho, salvo na pasta de capturas.
+  GRAVACAO: video com audio em MP4 ou MKV. Da para gravar so o audio.
+    Fonte do audio: som do aparelho, microfone ou reproducao.
+    O audio exige Android 11 ou superior.
+    Sem "mostrar a janela", a janela do scrcpy fica fora da area
+    visivel - ela existe para o arquivo poder ser fechado direito
+    quando voce clica em Parar. SEMPRE pare pelo botao.
+  PASTA: escolha por um seletor nativo do Windows; a galeria lista as
+    capturas recentes e abre cada arquivo no Explorer.
+
+----------------------------------------------------------
+6. ARQUIVOS
+----------------------------------------------------------
+  ARRASTAR E SOLTAR: jogue arquivos na area indicada. Eles sobem em
+    streaming (nao ocupam memoria) e ficam numa fila.
+    APKs -> botao "Instalar APKs da fila" (aceita varios de uma vez e
+    tambem bundles com base + splits).
+    Outros arquivos -> "Enviar arquivos", que copia para a pasta
+    aberta no navegador do aparelho e avisa a galeria do Android.
+  MANTER OS APKS ATUALIZADOS (cartao no topo da tela)
+    Cada app tem sua FONTE declarada em apks-fontes.json:
+      direto  URL oficial fixa        WhatsApp, Telegram
+      github  ultimo release do repo  Island
+      device  extrai de um celular    WA Business e os 4 apps da Meta
+      manual  so voce coloca          WebView Test (fora do automatico)
+    O interruptor de cada linha tira ou poe o app no automatico.
+    "Atualizar automaticamente" + intervalo: o painel confere sozinho
+    (a primeira checagem e 2 min depois de abrir, para nao brigar com
+    o boot; depois de hora em hora ele ve se ja passou o intervalo).
+
+    EXIGIR A MESMA ASSINATURA (deixe ligado)
+      Antes de substituir um APK, o painel le o certificado de quem
+      assinou o arquivo novo e compara com o do arquivo atual.
+      Assinatura de APK e criptografica: mesmo certificado = mesmo
+      publicador, pacote nao remontado. Diferente = descarta o
+      download e mantem o APK que ja estava la.
+      Quando o Android SDK esta na maquina, o painel usa o apksigner,
+      que RECONFERE os digests de todo o conteudo - se um byte foi
+      trocado, ele acusa e o arquivo e recusado na hora. Sem o SDK,
+      o painel cai num leitor proprio que so IDENTIFICA o assinante
+      (mais fraco, e a tela avisa).
+      O botao do escudo em cada linha mostra a impressao digital.
+
+  APKS DO PROGRAMA: tudo que esta em apks\ pode ser instalado com um
+    clique, inclusive as pastas -bundle.
+  NAVEGADOR DO APARELHO: percorra as pastas, marque arquivos e use
+    "Exportar marcados" para copiar para o PC.
+  "Conceder permissoes ao instalar" usa install -g.
+
+----------------------------------------------------------
+7. FERRAMENTAS
+----------------------------------------------------------
+  REINICIAR: normal, recovery, bootloader, fastboot (fastbootd) e
+    sideload. Tambem lista aparelhos em fastboot e faz sair de la.
+  APPS INSTALADOS: filtre por nome/pacote e escolha o escopo
+    (terceiros, todos, so desativados). Em lote:
+      Desativar   = some da gaveta e para de rodar, mas fica no
+                    firmware (da para reativar depois)
+      Reativar    = volta o app desativado
+      Limpar      = apaga dados e cache do app
+      Desinstalar = remove o app do perfil principal
+  MANUTENCAO: limpar o cache de todos os apps, alterar a resolucao e
+    a densidade REAIS do aparelho (e restaurar), e logcat ao vivo.
+  SHELL E COMANDOS: digite qualquer comando - ele roda no aparelho.
+    Prefixe com "adb " para rodar no PC (ex.: adb devices).
+    "Sessao interativa" mantem um shell vivo (cd e variaveis
+    continuam valendo entre comandos). Setas para cima/baixo
+    percorrem o historico. Ha atalhos prontos (modelo, bateria,
+    Wi-Fi, espaco, processos, app em foco).
+
+----------------------------------------------------------
+8. AVANCADO
+----------------------------------------------------------
+  ESCANEAR APPS: lista os pacotes e classifica pelo risco, usando as
+    listas do config.json:
+      seguro remover  - terceiros fora da whitelist, ou casando com
+                        bloatPatterns, ou em forceRemove
+      avalie antes    - nao se encaixa em nenhuma regra
+      nao remover     - casa com "protect" (telefone, launcher, loja)
+  ACOES sobre os selecionados: marcar para remover, proteger, extrair
+    APK, adicionar ao painel, conceder ou revogar permissoes.
+  EDITOR DO config.json:
+      protect ......... nunca remover (rede de seguranca, regex)
+      bloatPatterns ... remover se casar (regex)
+      keepThirdParty .. manter mesmo sendo de terceiros (regex)
+      forceRemove ..... remover sempre (nome exato do pacote)
+      disableServices . congelar (nome exato)
+      cloneApps ....... o que o Island clona
+      nativeCloneApps . o que o clonador do realme clona
+
+----------------------------------------------------------
+9. AJUDA
+----------------------------------------------------------
+  DIAGNOSTICO DO SEU CASO
+    Roda 11 verificacoes e diz o que falta, em vez de so listar texto:
+      ADB instalado e versao | scrcpy disponivel | aparelho conectado
+      e autorizado | modelo e Android | bateria | tela desbloqueada
+      | ALTERAR PERMISSOES pelo ADB liberado? | INSTALAR APPS pelo ADB
+      liberado? | depuracao USB ligada | espaco livre | perfis
+    As duas checagens em maiusculo sao as que mais pegam gente: elas
+    sondam de verdade (a de instalacao cria uma sessao de instalacao
+    vazia e a abandona em seguida - nao instala nada) e, quando o
+    aparelho recusa, a dica ja vem com o caminho exato do menu para a
+    SUA marca.
+
+  GUIA POR FABRICANTE
+    Abas para Xiaomi/Redmi/POCO, Samsung, realme/OPPO/OnePlus,
+    Motorola/Lenovo, Google Pixel e outras marcas. O painel abre
+    sozinho na aba do aparelho conectado. Os passos marcados como
+    "essencial" sao os que, faltando, travam o programa.
+
+    XIAOMI / REDMI / POCO (MIUI e HyperOS) - a marca mais travada:
+      1. Ajustes > Sobre o telefone > 7 toques em "Versao do MIUI"
+      2. ENTRAR NA CONTA MI - sem ela os dois passos abaixo nao ligam.
+         Costuma exigir tambem chip no aparelho e internet ativa.
+      3. Opcoes do desenvolvedor > "Depuracao USB"
+      4. Opcoes do desenvolvedor > "INSTALAR VIA USB"
+         (sem isso: INSTALL_FAILED_USER_RESTRICTED)
+      5. Opcoes do desenvolvedor > "DEPURACAO USB (CONFIGURACOES DE
+         SEGURANCA)" (sem isso: SecurityException/RUNTIME_PERMISSIONS
+         ao mexer em permissoes, e a automacao de tela nao funciona)
+      6. "Tente novamente mais tarde" = conta Mi muito nova; libera
+         depois de algumas horas com a conta conectada e o chip posto.
+      7. MIUI 12 ou anterior: desligue tambem "Otimizacao MIUI".
+      Reconecte o cabo depois de cada interruptor.
+
+    SAMSUNG (One UI):
+      1. Sobre o telefone > Informacoes de software > 7 toques em
+         "Numero da versao"
+      2. Opcoes do desenvolvedor > "Depuracao USB"
+      3. DESLIGAR O AUTO BLOCKER (Ajustes > Seguranca e privacidade).
+         Ligado, ele barra instalacao por fonte nao autorizada
+         (inclusive ADB) e ignora comandos USB com a tela bloqueada.
+      Permissoes por ADB funcionam sem interruptor extra.
+
+    REALME / OPPO / ONEPLUS (ColorOS):
+      1. Sobre o dispositivo > Versao > 7 toques em "Numero da versao"
+      2. "Depuracao USB"
+      3. "Depuracao USB (Config. de seguranca)"
+      4. "Desativar monitoramento de permissoes", quando existir
+      Apagar a tela pelo espelhamento nao funciona nessas ROMs.
+
+  ERROS FREQUENTES
+    Catalogo em 8 grupos - Conexao, Instalacao, Permissoes,
+    Espelhamento, Captura, Wi-Fi, Painel e Debloat. Cada item abre
+    mostrando POR QUE acontece e a solucao em passos. A busca no topo
+    filtra tudo: da para colar a mensagem de erro (ex.:
+    INSTALL_FAILED_USER_RESTRICTED) e cair direto na resposta.
+
+  ABRIR UMA TELA NO CELULAR
+    Botoes que abrem no aparelho: Opcoes do desenvolvedor, Sobre o
+    telefone, Seguranca, Aplicativos, Wi-Fi, Bateria, Contas e
+    Atualizacao. Util porque o caminho do menu muda de marca para
+    marca - o painel manda o Android abrir a tela certa.
+
+  REINICIAR O SERVIDOR ADB
+    Botao no topo. Resolve o classico "adb server version doesn't
+    match", que aparece quando outro programa (Android Studio, outro
+    gerenciador de celular) subiu um ADB de versao diferente.
+
+----------------------------------------------------------
+10. CONFIGURACOES
+----------------------------------------------------------
+  APARENCIA: tema escuro/claro/seguir o Windows, 5 cores de destaque,
+    densidade confortavel ou compacta, animacoes e som ao terminar.
+  PADROES DO ESPELHAMENTO: resolucao, FPS, bitrate, codec, manter a
+    tela acesa, ligar a tela ao conectar, mostrar toques.
+  WI-FI: porta do ADB e reconexao automatica.
+  MANUTENCAO DO PROGRAMA: encontra sobras de extracao (.part), logs
+    antigos, temporarios de envio e a pasta apks-desativados, mostra
+    quanto ocupam e apaga so o que voce marcar.
+  ATUALIZACAO: verifica e baixa a versao nova do programa e os APKs
+    curados (precisa do endereco em update.json).
+  SOBRE: versao, scrcpy detectado, Node, tempo no ar e um aviso
+    quando o codigo mudou no disco e o painel precisa ser reaberto.
+
+----------------------------------------------------------
+LOG AO VIVO
+----------------------------------------------------------
+  A doca da direita (Ctrl+L) mostra tudo que esta acontecendo, com
+  cores por tipo de linha. As tarefas entram numa FILA: se voce
+  disparar duas coisas que mexem no aparelho, a segunda espera a
+  primeira - nada e sobrescrito. "Parar" cancela a tarefa atual.
+  "Baixar log" salva o que esta na tela em .txt.
+  O programa tambem grava um log proprio em logs\_painel\.
+
+----------------------------------------------------------
+SEGURANCA
+----------------------------------------------------------
+  O servidor escuta apenas em 127.0.0.1 e agora exige:
+    - Host local (bloqueia ataque por DNS rebinding)
+    - origem igual a do painel
+    - token de sessao, gerado a cada inicializacao
+  Sem isso, qualquer site aberto no navegador conseguiria mandar
+  comandos para o seu celular - era o caso na versao anterior.
+
+----------------------------------------------------------
+PROBLEMAS COMUNS
+----------------------------------------------------------
+  "Nao consegui espelhar"
+    - reconecte o cabo e tente de novo (botao "Tentar de novo")
+    - alguns aparelhos precisam da tela desbloqueada
+    - se persistir, use "Modo simples" ou a "Janela nativa"
+
+  Espelho travado
+    - clique em "Novo keyframe"; se nao resolver, "Reconectar"
+
+  Gravacao com 0 byte
+    - a gravacao foi encerrada a forca. Use sempre o botao "Parar".
+
+  "O aparelho bloqueou a alteracao de permissoes"
+    - ligue "Depuracao USB (Config. de seguranca)" nas Opcoes do
+      desenvolvedor (realme/ColorOS e Xiaomi/MIUI)
+
+  Apagar a tela nao funciona
+    - alguns ColorOS/MIUI bloqueiam o comando de energia da tela via
+      ADB; use o botao fisico do aparelho
+
+  Painel nao abre / porta 8787 em uso
+    - o painel ja esta aberto em outra janela, ou sobrou um node.exe
+      rodando. Feche a janela preta antiga e abra de novo.

@@ -1,43 +1,223 @@
 {
-    "versao":  "5.0",
-    "data":  "2026-07-16",
-    "notas":  "Clonador nativo agora cobre Xiaomi (Apps duplos) e Samsung (Mensageiro Duplo), alem do realme. Seletor de aparelho com 2+ celulares. Novas etapas: Brilho/tela, Deixar mais rapido, Permitir tudo (inclui clones), Manter apps vivos. Correcoes: encoding de acentos, servico mcs (nao reinicia mais no realme), WhatsApp universal 32/64-bit.",
+    "versao":  "6.0",
+    "notas":  "Espelhamento de verdade, interface nova e verificação de assinatura de APK.",
+    "gerado":  "2026-07-31",
     "arquivos":  [
-                     {
-                         "caminho":  "setup-celular.ps1",
-                         "sha256":  "7aa0d5fa7f7d4f344bc6b0f33852998380f8e04068565f7148b72b3175f825a9"
-                     },
                      {
                          "caminho":  "atualizar-apks.ps1",
                          "sha256":  "dff3c4127f762d87965c09de5aeb8ab264b8e686f46481282e4025ce436634f0"
-                     },
-                     {
-                         "caminho":  "restaurar.ps1",
-                         "sha256":  "0b9249d3874c88430a38eb0899d7ee15b0ab7c6e99586b17485463a678bad3f5"
-                     },
-                     {
-                         "caminho":  "gerenciar-app.ps1",
-                         "sha256":  "abc855cd2fcdbb22ba2496960d412fe871dc10110c5c87f7ca56155c62db8011"
-                     },
-                     {
-                         "caminho":  "extrair-apk.ps1",
-                         "sha256":  "3ec82a2232d179103151ec6f4a46e920b822c4881fc3d5cb28e45227dd6a38ec"
                      },
                      {
                          "caminho":  "clones-cloneapp.ps1",
                          "sha256":  "0d7e0051286afbf915bc02e79fba19bebdd21c8c1ab3e237c1d71c55d72e64db"
                      },
                      {
-                         "caminho":  "painel/server.cjs",
-                         "sha256":  "9f4ed330734b9604459bd2fa7555fb9443e2e3da4901f726dd7e46bf040fc940"
+                         "caminho":  "extrair-apk.ps1",
+                         "sha256":  "3ec82a2232d179103151ec6f4a46e920b822c4881fc3d5cb28e45227dd6a38ec"
+                     },
+                     {
+                         "caminho":  "gerenciar-app.ps1",
+                         "sha256":  "abc855cd2fcdbb22ba2496960d412fe871dc10110c5c87f7ca56155c62db8011"
+                     },
+                     {
+                         "caminho":  "LEIA-ME.txt",
+                         "sha256":  "5a37361a56b654f923faf562e3e5e82ad3d94cb0749d11543149f51784e9a50b"
+                     },
+                     {
+                         "caminho":  "MANUAL-PAINEL.txt",
+                         "sha256":  "ea8265e5a197a1fe9149596a0cb304c51af21dcf0905f171c79c37f2b38558cd"
+                     },
+                     {
+                         "caminho":  "painel/app/core/api.js",
+                         "sha256":  "8f630a44df5bae040bff57575d2f74585e962330587a2b957ec0276e5700e453"
+                     },
+                     {
+                         "caminho":  "painel/app/core/icons.js",
+                         "sha256":  "d70d1e76c705ba9c7019210ed07d53444aab25c72ce0c90704ab94bb1c69b6ef"
+                     },
+                     {
+                         "caminho":  "painel/app/core/kit.js",
+                         "sha256":  "7b65e14e9952f32b42172a3342d67deeb2a409fde3d1df587f4f515de99148f4"
+                     },
+                     {
+                         "caminho":  "painel/app/core/mirrordock.js",
+                         "sha256":  "539e451b7994864d20102ca847a91a51800161a3e4bd44b318303287ac89cbdc"
+                     },
+                     {
+                         "caminho":  "painel/app/core/rename.js",
+                         "sha256":  "bf4bccdf1b183a8d33ca3efe05afd27a20effd328f2d258b98872ef854b84dc7"
+                     },
+                     {
+                         "caminho":  "painel/app/core/shell.js",
+                         "sha256":  "14769401ee613dd6ff2a7b1a29385890ec6accb882897be0303a5a328e6c720f"
+                     },
+                     {
+                         "caminho":  "painel/app/core/state.js",
+                         "sha256":  "e2cfa46bb9895b9e3ddad41d9bf23c2aa85969d24777e940b5bc6310b3d2f13f"
+                     },
+                     {
+                         "caminho":  "painel/app/core/tasks.js",
+                         "sha256":  "bd106816d9a593492909ad8349ec57ff2747f88193cf57dbabccc2cb7e429c66"
+                     },
+                     {
+                         "caminho":  "painel/app/main.js",
+                         "sha256":  "7fa0936c6b92e27f0435047e9186fe3840df8e5882dd93a1c75ae56b48690978"
+                     },
+                     {
+                         "caminho":  "painel/app/player/player.js",
+                         "sha256":  "d3aa41fc7a76ea11f7b73584b154dd0826defffc2f9e1cc34832feb72eca7fbe"
+                     },
+                     {
+                         "caminho":  "painel/app/styles/app.css",
+                         "sha256":  "cd14ed538b2977fe97c77cca2775e23a34aea034e3e1f3a335180ea7b099eb4c"
+                     },
+                     {
+                         "caminho":  "painel/app/styles/tokens.css",
+                         "sha256":  "4cf5d1b460c62dae13ee0458576b1d86d1741eade99bcfa39f24b5ea49ef3fbe"
+                     },
+                     {
+                         "caminho":  "painel/app/ui/logos.js",
+                         "sha256":  "f97201a3d3f0ecf684fbd53e1ff409a5feec9cd7302fb9729b29c84acdc0e1fe"
+                     },
+                     {
+                         "caminho":  "painel/app/ui/widgets.js",
+                         "sha256":  "9fe5262e22e84b152d2fdbd46a5918f0ba5c283a4073fbdb916559c562db8391"
+                     },
+                     {
+                         "caminho":  "painel/app/views/advanced.js",
+                         "sha256":  "6e9b76977eb1953be9d3df683aa3e25748ea1c40e6c46381035e6469e1626928"
+                     },
+                     {
+                         "caminho":  "painel/app/views/apps.js",
+                         "sha256":  "a9dd26b13996f7b5e00ed62616f51958d055a36e80f38bf404171a12fe42dfc9"
+                     },
+                     {
+                         "caminho":  "painel/app/views/capture.js",
+                         "sha256":  "24dacdf3c03d53a7aad4fe16cbcada42c45e004dd077d25bda545a5fddc1b631"
+                     },
+                     {
+                         "caminho":  "painel/app/views/devices.js",
+                         "sha256":  "9d38ccf659e04f81fcef62b6a8a110954e60b9b33703a9b2eea6732fd2e2de72"
+                     },
+                     {
+                         "caminho":  "painel/app/views/files.js",
+                         "sha256":  "2bf916df41e8fcf71c6e943610c397331459f8fee2d0befde82dc740f2004fc9"
+                     },
+                     {
+                         "caminho":  "painel/app/views/help.js",
+                         "sha256":  "644ed1b9ac31d8df464e38935c346a0bc2e7cd103e9b4f2fce9f28f61ba35043"
+                     },
+                     {
+                         "caminho":  "painel/app/views/mirror.js",
+                         "sha256":  "47de82857f1c29e3247dddd4a466d3808cf32100fe9f508e5b1503a7792ff0fe"
+                     },
+                     {
+                         "caminho":  "painel/app/views/settings.js",
+                         "sha256":  "66ea07e7c9d963bc70ad497b09f0f25f7c2df4e63cd2e007250876729a59c604"
+                     },
+                     {
+                         "caminho":  "painel/app/views/setup.js",
+                         "sha256":  "fb39f42000f5cdf64dd49a04385ffbfbdffa357cc430497d23f58230af449620"
+                     },
+                     {
+                         "caminho":  "painel/app/views/tools.js",
+                         "sha256":  "8138a171b0abcf9ab3de5da52b962e3e6a1d350112a77c712179907cd48fbd93"
                      },
                      {
                          "caminho":  "painel/index.html",
-                         "sha256":  "16d9a2a127f87e8cc445cf92a92968528cf426288f5668b54642db6682cf3aa7"
+                         "sha256":  "72427f9c1acc145e36692dafc6c797f5db986095615b0896030ea694811ecb89"
                      },
                      {
                          "caminho":  "painel/iniciar-painel.bat",
-                         "sha256":  "1a893e8257603c40387ae041f8693713ebcd040cdecd5227aaa774a780c74d6d"
+                         "sha256":  "9f7016e2525dfd117412d40175e2181ac2ea6d1d326f499a0a5cf29bcaf1f196"
+                     },
+                     {
+                         "caminho":  "painel/server.cjs",
+                         "sha256":  "696a69f8304a7e0036b40e47c134aabfcbe31e486ad92b4f2a89cefbcaf3a2bd"
+                     },
+                     {
+                         "caminho":  "painel/server/adb.cjs",
+                         "sha256":  "f3fcec300267bdec0ee252ceb32106aea4003a7e12b476765668918cf6fc9bee"
+                     },
+                     {
+                         "caminho":  "painel/server/apks.cjs",
+                         "sha256":  "9242989d176f3934d40479ee2ff8ddd58b0125e6ef196a77a1afc8c66f49add9"
+                     },
+                     {
+                         "caminho":  "painel/server/cert-apk.ps1",
+                         "sha256":  "36ee125e70e7a9d6bbf8b35291ae0160f23e4c85b2f8f1cff8591d1ca1e524f0"
+                     },
+                     {
+                         "caminho":  "painel/server/core.cjs",
+                         "sha256":  "e16f48f7a8dd78c211c99df76bcc6cc1557dc5e64ad06deebdc2f0369843bafb"
+                     },
+                     {
+                         "caminho":  "painel/server/http.cjs",
+                         "sha256":  "5decbf20870caf9d4aebf882e8162751c8f4315cf30e79803ad63dc265b3a4cf"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/apks.cjs",
+                         "sha256":  "03815e1c03aac3c58010b2150db1e0fcacbf4b287e8baf3cb0698d52f28aee2e"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/capture.cjs",
+                         "sha256":  "3b04e2342a559da45eb3e91240fb0393ceb601f2487464d189067d118e44bff5"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/devices.cjs",
+                         "sha256":  "57a8cc7761dc06214e251661b71f03b2acdc9aac376d57ee215f7ef5e78c2711"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/files.cjs",
+                         "sha256":  "48009cf036af1374452e6ef57cdda522f82607edd7ed51fb4186c06506b758b3"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/help.cjs",
+                         "sha256":  "eceaf3722c314dafdd134df19717cc67a85846cc00a2c80a515985638b4c9255"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/legacy.cjs",
+                         "sha256":  "5a8cb8f58a38f1206a83f3376bdf84cc99be027138d37fa6cefca3469b6b4b4a"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/mirror.cjs",
+                         "sha256":  "bbfb296df3a4de72f29719e1f0ba5e784c27baee507caae3db9b4d6acf969111"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/system.cjs",
+                         "sha256":  "14195ea7edd9c117cedce848df92d3fc0dafef890d429dac3262898f33f2aed3"
+                     },
+                     {
+                         "caminho":  "painel/server/routes/tools.cjs",
+                         "sha256":  "cc30216e1d103fe7fa1fd6a77e93d279c51ed17453290be49af0b9c74295c947"
+                     },
+                     {
+                         "caminho":  "painel/server/scrcpy/control.cjs",
+                         "sha256":  "5ca6948a7b51447fdc1a559139feebc331914aa3066dcc956218bf3a355c77af"
+                     },
+                     {
+                         "caminho":  "painel/server/scrcpy/dist.cjs",
+                         "sha256":  "2491fe628c0fe0086430d103f442cd4fced7c0ca8cc1e7b9bec688b565d5d714"
+                     },
+                     {
+                         "caminho":  "painel/server/scrcpy/native.cjs",
+                         "sha256":  "0255f8b35d784b3942f19d8bb4eea1de91c328551d90e9b60afe5dae020a3cea"
+                     },
+                     {
+                         "caminho":  "painel/server/scrcpy/session.cjs",
+                         "sha256":  "b4705b345af4de525b5d23ff2717b8f46ea06b4f731287ee42b71b99bb15a399"
+                     },
+                     {
+                         "caminho":  "painel/server/ws.cjs",
+                         "sha256":  "ca233146a12e23f5923b4c5cb6e101059dcab3fe86517c25975433552fd0d86c"
+                     },
+                     {
+                         "caminho":  "restaurar.ps1",
+                         "sha256":  "0b9249d3874c88430a38eb0899d7ee15b0ab7c6e99586b17485463a678bad3f5"
+                     },
+                     {
+                         "caminho":  "setup-celular.ps1",
+                         "sha256":  "e8bc92dcf592455d12a31ef36a2b294b88be080f1fc8d688892c433e60e4e8fc"
                      }
                  ]
 }

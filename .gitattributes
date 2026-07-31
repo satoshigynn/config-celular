@@ -1,0 +1,16 @@
+# ============================================================================
+#  Sem conversao de fim de linha. Nenhuma. Nao e preferencia de estilo.
+# ----------------------------------------------------------------------------
+#  O atualizador do painel baixa publicar/<arquivo> do RAW do GitHub e compara
+#  o sha256 com o que esta em publicar/versao.json - hash calculado sobre o
+#  arquivo COMO ELE ESTA EM DISCO aqui.
+#
+#  Com core.autocrlf=true (o padrao do Git for Windows) um arquivo salvo em
+#  CRLF vira LF no blob. O RAW entao serve bytes diferentes dos que foram
+#  hasheados, e o download morre em "verificacao (hash) falhou. Abortado por
+#  seguranca." - sem pista nenhuma de que a causa foi fim de linha.
+#
+#  "-text" desliga a normalizacao: o blob guarda exatamente os bytes do disco.
+# ============================================================================
+
+* -text

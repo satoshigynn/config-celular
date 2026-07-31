@@ -1,0 +1,47 @@
+# ============================================================================
+#  O que NAO vai para o repositorio
+# ----------------------------------------------------------------------------
+#  ATENCAO ao editar: no .gitignore o "#" so vira comentario no INICIO da
+#  linha. Comentario no fim da linha entra no padrao e o filtro para de
+#  funcionar em silencio. Por isso todo comentario aqui fica em linha propria.
+#
+#  Duas razoes distintas para excluir:
+#   1. PRIVACIDADE - serial de aparelho, caminhos do seu PC, imagens da tela.
+#   2. PESO - binarios de terceiros e APKs (~1,3 GB). Eles vem pelo
+#      instalador, nao pelo git; o atualizador so baixa codigo e texto.
+# ============================================================================
+
+# ---- privacidade (NUNCA publicar) ------------------------------------------
+# suas preferencias + serial e apelido dos aparelhos
+/painel-settings.json
+# apps que voce adicionou ao painel
+/apps-catalog.json
+# log por aparelho: o serial esta ate no nome do arquivo
+/logs/
+# prints e gravacoes da tela do celular
+/capturas/
+
+# ---- binarios de terceiros (vem no instalador) -----------------------------
+/node.exe
+*.exe
+/unins000.dat
+# A BARRA DA FRENTE E OBRIGATORIA. Sem ela o padrao casa em QUALQUER
+# profundidade, e "scrcpy/" engoliria painel/server/scrcpy/ - os quatro
+# arquivos do motor de espelhamento, o coracao do projeto. Ja aconteceu.
+/scrcpy/
+/platform-tools/
+
+# ---- conteudo pesado -------------------------------------------------------
+/apks/
+
+# ---- temporarios e sobras --------------------------------------------------
+/.tmp-envios/
+/_backup*/
+*.part
+*.tmp
+*.log
+
+# ---- sistema ---------------------------------------------------------------
+Thumbs.db
+desktop.ini
+.DS_Store
