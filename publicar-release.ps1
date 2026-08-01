@@ -106,7 +106,13 @@ $antes = [System.IO.File]::ReadAllText($readme)
 $depois = $antes
 $depois = [regex]::Replace($depois, 'releases/download/v[0-9][0-9.]*/', "releases/download/$tag/")
 $depois = [regex]::Replace($depois, 'ConfigCelular-[0-9][0-9.]*-(completo\.exe|instalador\.exe|portatil\.zip)', "ConfigCelular-$Versao-`$1")
-$depois = [regex]::Replace($depois, '\*\*vers[aã]o [0-9][0-9.]*\*\*', "**versão $Versao**")
+# Troca SO o numero, preservando a palavra como ela esta no arquivo.
+# A versao anterior trazia um "a" com til dentro do padrao e da substituicao:
+# o Windows PowerShell le .ps1 sem BOM como ANSI, o caractere chegava
+# corrompido, o padrao nunca casava com "versao" e o rotulo ficava preso na
+# versao antiga enquanto os links (so ASCII) eram atualizados - o README
+# anunciava 6.1 com links da 6.2. Sem acento no script, o problema nao existe.
+$depois = [regex]::Replace($depois, '(\*\*vers\w*o\s+)[0-9][0-9.]*(\*\*)', "`${1}$Versao`${2}")
 if ($depois -ne $antes) {
   [System.IO.File]::WriteAllText($readme, $depois, (New-Object System.Text.UTF8Encoding($false)))
   Ok "atualizados para $tag"

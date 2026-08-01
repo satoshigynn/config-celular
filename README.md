@@ -20,7 +20,7 @@ sozinhas).
 
 ### ⬇ [**Baixar (pacote completo)**](https://github.com/satoshigynn/config-celular/releases/download/v6.2/ConfigCelular-6.2-completo.exe)
 
-**versão 6.1** &nbsp;·&nbsp; Windows 10/11 &nbsp;·&nbsp; [todas as versões](https://github.com/satoshigynn/config-celular/releases)
+**versão 6.2** &nbsp;·&nbsp; Windows 10/11 &nbsp;·&nbsp; [todas as versões](https://github.com/satoshigynn/config-celular/releases)
 
 </div>
 
