@@ -54,7 +54,19 @@ function httpGetBuffer(url, cb, redirects) {
   if (redirects > 5) return cb(new Error('muitos redirecionamentos'));
   let lib;
   try { lib = url.toLowerCase().startsWith('https:') ? https : http; } catch (e) { return cb(e); }
-  const req = lib.get(url, { headers: { 'User-Agent': 'ConfigCelular-Updater' } }, (r) => {
+  // Sem estes cabecalhos, o raw.githubusercontent entrega a resposta guardada
+  // na borda por alguns minutos. Na pratica: minutos depois de publicar, o
+  // painel ainda anunciava a contagem e as notas ANTIGAS, e clicar em
+  // "Verificar" repetia a mesma resposta velha - parecia que a publicacao nao
+  // tinha acontecido. Pedir explicitamente conteudo fresco resolve, e nao
+  // atrapalha o download dos arquivos (cada um e conferido por sha256 depois).
+  const req = lib.get(url, {
+    headers: {
+      'User-Agent': 'ConfigCelular-Updater',
+      'Cache-Control': 'no-cache, max-age=0',
+      'Pragma': 'no-cache',
+    },
+  }, (r) => {
     if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
       r.resume();
       let next;
