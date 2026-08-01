@@ -8,6 +8,7 @@ import { api } from '../core/api.js';
 import { store } from '../core/state.js';
 import { theme, toggleDock, showShortcuts, go } from '../core/shell.js';
 import mirrordock from '../core/mirrordock.js';
+import updatebar from '../core/updatebar.js';
 import { runTask } from '../core/tasks.js';
 import { card, btn, iconBtn, chip, field, selectField, emptyState, statTile } from '../ui/widgets.js';
 
@@ -230,6 +231,10 @@ export const settingsView = {
             }))
         );
       } catch (e) { mount(updateInfo, h('p.small.err', {}, e.message)); }
+      // Um "Verificar" manual pode revelar uma versao mais nova que a que foi
+      // dispensada: a faixa do alto tem que reaparecer nesse caso. Se a versao
+      // for a mesma ja dispensada, o refresh respeita a dispensa e nao insiste.
+      finally { updatebar.refresh(); }
     };
 
     /* --------------------------------------------------------- sobre ----- */

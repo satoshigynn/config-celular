@@ -9,6 +9,7 @@ import { store, startRealtime, bus } from './core/state.js';
 import { buildShell, registerView, theme, registerCommand, go } from './core/shell.js';
 import { logLine } from './core/tasks.js';
 import mirrordock from './core/mirrordock.js';
+import updatebar from './core/updatebar.js';
 
 import { devicesView } from './views/devices.js';
 import { mirrorView } from './views/mirror.js';
@@ -71,6 +72,10 @@ async function boot() {
       toast('Uma atualizacao foi baixada - feche e abra o painel para aplicar', 'warn', 8000);
     }
   } catch (_) { }
+
+  // procura versao nova sozinho e mostra a faixa no alto se houver.
+  // Antes so descobria quem fosse ate Configuracoes e clicasse em "Verificar".
+  updatebar.start();
 
   // notificacoes de tarefas longas (o usuario decide)
   if ('Notification' in window && Notification.permission === 'default') {

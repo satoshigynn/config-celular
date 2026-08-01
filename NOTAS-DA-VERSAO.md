@@ -6,7 +6,16 @@ no painel, em Configurações → Atualização.
 
 ## 6.2
 
-Instalação de APK deixa de falhar por causa da verificação de apps.
+Aviso de versão nova no alto da tela, e instalação de APK que não falha mais
+por causa da verificação de apps.
+
+**O painel avisa sozinho quando há versão nova.** Antes era preciso ir até
+Configurações → Atualização e clicar em "Verificar" — ou seja, só descobria
+quem já desconfiava. Agora ele consulta na abertura (e de 6 em 6 horas) e, se
+houver novidade, mostra uma faixa **acima da barra de título, visível em todas
+as telas**, com o número da versão, o resumo do que mudou e o botão "Atualizar
+agora". Dá para dispensar; a dispensa vale só para aquela versão, então a
+seguinte volta a avisar.
 
 **`INSTALL_FAILED_VERIFICATION_FAILURE`.** Quando o aparelho tem
 `verifier_verify_adb_installs` ligado, ele consulta o Play Protect antes de

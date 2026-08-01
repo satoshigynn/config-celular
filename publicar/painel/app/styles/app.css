@@ -160,6 +160,45 @@ h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 650; letter-spac
 /* ---------------------------------------------------------- topbar ------- */
 .main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 
+/* --- faixa de atualizacao: acima de tudo, presente em todas as telas ------
+   flex: 0 0 auto para nao roubar altura do conteudo; quando escondida sai do
+   fluxo por completo (o hidden do HTML nao basta num container flex). */
+.updatebar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  background: var(--accent-soft);
+  color: var(--text);
+  border-bottom: 1px solid var(--accent);
+  font-size: var(--fs-sm);
+}
+.updatebar[hidden] { display: none; }
+.updatebar__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent);
+  font-weight: 650; white-space: nowrap;
+}
+.updatebar__ver { font-weight: 700; white-space: nowrap; }
+/* a nota da versao pode ser longa: corta com reticencias em vez de empurrar
+   os botoes para fora da tela */
+.updatebar__txt {
+  color: var(--text-2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.updatebar__spacer { flex: 1; min-width: var(--sp-2); }
+.updatebar__x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; flex: 0 0 auto;
+  border: 0; border-radius: var(--r-xs);
+  background: transparent; color: var(--text-2); cursor: pointer;
+}
+.updatebar__x:hover { background: var(--surface-2); color: var(--text); }
+
+@media (max-width: 900px) {
+  .updatebar__txt { display: none; }
+}
+
 .topbar {
   height: var(--topbar-h); flex: 0 0 auto;
   display: flex; align-items: center; gap: var(--sp-3);

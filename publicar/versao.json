@@ -1,6 +1,6 @@
 {
     "versao":  "6.2",
-    "notas":  "Instalação de APK deixa de falhar por causa da verificação de apps.",
+    "notas":  "Aviso de versão nova no alto da tela, e instalação de APK que não falha mais por causa da verificação de apps.",
     "gerado":  "2026-08-01",
     "arquivos":  [
                      {
@@ -21,7 +21,7 @@
                      },
                      {
                          "caminho":  "LEIA-ME.txt",
-                         "sha256":  "f40c0b08da45a412a96e9358a4a61105e7f693534722783ce15ece7f272e88de"
+                         "sha256":  "2477bacf2f2924b1970f9d6e4acdc0571d9e186d44483a71ca4952751a060a45"
                      },
                      {
                          "caminho":  "MANUAL-PAINEL.txt",
@@ -49,7 +49,7 @@
                      },
                      {
                          "caminho":  "painel/app/core/shell.js",
-                         "sha256":  "14769401ee613dd6ff2a7b1a29385890ec6accb882897be0303a5a328e6c720f"
+                         "sha256":  "9aeb94f3c7cf35816143d4e62089ccf914169cf72afc48959f5b02ee014d7260"
                      },
                      {
                          "caminho":  "painel/app/core/state.js",
@@ -60,8 +60,12 @@
                          "sha256":  "bd106816d9a593492909ad8349ec57ff2747f88193cf57dbabccc2cb7e429c66"
                      },
                      {
+                         "caminho":  "painel/app/core/updatebar.js",
+                         "sha256":  "b94353dbf16154b67c5bf041a385b19f6dc764f5e832422cc38ed8a2771c8279"
+                     },
+                     {
                          "caminho":  "painel/app/main.js",
-                         "sha256":  "7fa0936c6b92e27f0435047e9186fe3840df8e5882dd93a1c75ae56b48690978"
+                         "sha256":  "535025f8c540c9ef3fcc0633088e508c89d2a28dabd2005a4d7d3ea1d154822d"
                      },
                      {
                          "caminho":  "painel/app/player/player.js",
@@ -69,7 +73,7 @@
                      },
                      {
                          "caminho":  "painel/app/styles/app.css",
-                         "sha256":  "cd14ed538b2977fe97c77cca2775e23a34aea034e3e1f3a335180ea7b099eb4c"
+                         "sha256":  "7a104f1fc3b690e7523176551f93d74a4fc4aaf3e8efd61c92e0226c0c22e7d5"
                      },
                      {
                          "caminho":  "painel/app/styles/tokens.css",
@@ -113,7 +117,7 @@
                      },
                      {
                          "caminho":  "painel/app/views/settings.js",
-                         "sha256":  "66ea07e7c9d963bc70ad497b09f0f25f7c2df4e63cd2e007250876729a59c604"
+                         "sha256":  "e634a7206da744e4ceee2893295c8e94665cde343bec47898e15126e55f86b8f"
                      },
                      {
                          "caminho":  "painel/app/views/setup.js",

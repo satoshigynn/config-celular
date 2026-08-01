@@ -9,8 +9,9 @@ import { h, mount, clear, $, toast, confirmBox } from './kit.js';
 import { icon } from './icons.js';
 import { api } from './api.js';
 import { store, bus, currentDevice, onlineDevices, selectDevice, hasDevice } from './state.js';
-import { taskBus, isBusy, currentTask, createLogPane, clearLog, downloadLog, pending } from './tasks.js';
+import { taskBus, isBusy, currentTask, createLogPane, clearLog, downloadLog, pending, runTask } from './tasks.js';
 import mirrordock from './mirrordock.js';
+import updatebar from './updatebar.js';
 
 const views = new Map();
 const commands = [];
@@ -396,8 +397,18 @@ export function buildShell() {
   }, { passive: true });
   const content = h('div.content', {}, viewHost, mirrordock.create(), buildDock());
 
+  // A faixa de atualizacao vem ANTES da topbar: fica no alto de tudo e nao
+  // depende da tela aberta. O callback e passado daqui (e nao importado la
+  // dentro) para nao criar import circular shell <-> updatebar.
+  const barraUpdate = updatebar.create({
+    onUpdate: () => {
+      toggleDock(true);
+      runTask({ title: 'Atualizar programa', path: '/api/update-run' });
+    },
+  });
+
   app.appendChild(sidebar);
-  app.appendChild(h('div.main', {}, topbar, content));
+  app.appendChild(h('div.main', {}, barraUpdate, topbar, content));
   document.body.appendChild(app);
 
   if (localStorage.getItem('painel.rail') === '1') app.dataset.rail = '1';

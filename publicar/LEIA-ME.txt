@@ -13,6 +13,12 @@ exclusivas do realme sao puladas automaticamente).
 ----------------------------------------------------------
 NOVIDADES DA VERSAO 6.2
 ----------------------------------------------------------
+  * AVISO DE VERSAO NOVA NO ALTO DA TELA. O painel procura
+    atualizacao sozinho ao abrir (e de 6 em 6 horas). Havendo
+    novidade, aparece uma faixa ACIMA da barra de titulo, visivel
+    em todas as telas, com a versao, o resumo e o botao "Atualizar
+    agora". Da para dispensar - a dispensa vale so para aquela
+    versao, a seguinte volta a avisar.
   * Corrigido INSTALL_FAILED_VERIFICATION_FAILURE. Alguns aparelhos
     vem com a "verificacao de apps por USB" ligada e consultam o
     Play Protect antes de deixar instalar. Sem internet, ou se o
