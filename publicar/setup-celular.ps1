@@ -301,10 +301,20 @@ if(-not $SkipApks){
     # falha na seguinte, no mesmo aparelho.
     # Aqui a verificacao e desligada so durante esta etapa e devolvida ao valor
     # original no finally, inclusive se algo estourar no meio.
-    $verifAntes = ((& $Adb shell settings get global verifier_verify_adb_installs) -join '').Trim()
-    if($verifAntes -eq '1' -and -not $DryRun){
-      & $Adb shell settings put global verifier_verify_adb_installs 0 2>$null | Out-Null
-      Write-Host "  (verificacao de apps por ADB desligada durante a instalacao)" -ForegroundColor DarkGray
+    # Vale para QUALQUER aparelho, nao so os que leem "1": ha modelo que devolve
+    # null (ajuste nunca gravado) e mesmo assim consulta o verificador. Entao
+    # desliga sempre, guardando o valor exato de cada chave para devolver depois.
+    # Restaurar "null" e' settings delete - regravar a string "null" criaria um
+    # ajuste com o texto "null" dentro, que nao e' o estado original.
+    $verifChaves = @('verifier_verify_adb_installs','package_verifier_enable')
+    $verifAntes = @{}
+    foreach($ch in $verifChaves){
+      $verifAntes[$ch] = ((& $Adb shell settings get global $ch) -join '').Trim()
+    }
+    if(-not $DryRun){
+      foreach($ch in $verifChaves){ & $Adb shell settings put global $ch 0 2>$null | Out-Null }
+      $eram = ($verifChaves | ForEach-Object { "$_=$($verifAntes[$_])" }) -join ', '
+      Write-Host "  (verificacao de apps por ADB desligada durante a instalacao; era $eram)" -ForegroundColor DarkGray
     }
     try {
     Get-ChildItem $apkDir -Filter *.apk | ForEach-Object {
@@ -348,9 +358,13 @@ if(-not $SkipApks){
       Write-Host ("  {0,-28} {1}" -f $bn, $(if($ok){"[instalado (bundle $devAbi)]"}else{"[FALHOU] $porque"})) -ForegroundColor $(if($ok){"Green"}else{"Yellow"})
     }
     } finally {
-      # devolve a verificacao ao valor original - inclusive se a etapa estourou
-      if($verifAntes -eq '1' -and -not $DryRun){
-        & $Adb shell settings put global verifier_verify_adb_installs 1 2>$null | Out-Null
+      # devolve cada chave ao valor original - inclusive se a etapa estourou
+      if(-not $DryRun){
+        foreach($ch in $verifChaves){
+          $v = $verifAntes[$ch]
+          if($v -eq 'null' -or $v -eq ''){ & $Adb shell settings delete global $ch 2>$null | Out-Null }
+          else { & $Adb shell settings put global $ch $v 2>$null | Out-Null }
+        }
         Write-Host "  (verificacao de apps por ADB restaurada)" -ForegroundColor DarkGray
       }
     }
