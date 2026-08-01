@@ -1,5 +1,5 @@
 ==========================================================
-  CONFIG CELULAR - gerenciador de aparelhos Android (v6.1)
+  CONFIG CELULAR - gerenciador de aparelhos Android (v6.2)
 ==========================================================
 
 Esta pasta e AUTOSSUFICIENTE: ja vem com o ADB, o scrcpy e o Node
@@ -9,6 +9,17 @@ Nao precisa instalar nada.
 Funciona em celulares realme/ColorOS (recursos completos) e tambem
 em outras marcas - Samsung, Xiaomi, Motorola, etc. (as etapas
 exclusivas do realme sao puladas automaticamente).
+
+----------------------------------------------------------
+NOVIDADES DA VERSAO 6.2
+----------------------------------------------------------
+  * Corrigido INSTALL_FAILED_VERIFICATION_FAILURE. Alguns aparelhos
+    vem com a "verificacao de apps por USB" ligada e consultam o
+    Play Protect antes de deixar instalar. Sem internet, ou se o
+    servico demora, a instalacao e recusada - e de forma
+    INTERMITENTE, o mesmo APK entra numa vez e falha na outra. A
+    etapa agora desliga essa verificacao enquanto instala e devolve
+    o valor original no fim.
 
 ----------------------------------------------------------
 NOVIDADES DA VERSAO 6.1

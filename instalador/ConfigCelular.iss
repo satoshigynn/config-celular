@@ -24,7 +24,7 @@
 ; O gerar-instalador.ps1 passa /DVersao. O ifndef deixa compilar a mao tambem;
 ; sem ele, este #define venceria o da linha de comando e a versao ficaria presa.
 #ifndef Versao
-  #define Versao    "6.1"
+  #define Versao    "6.2"
 #endif
 #define Autor       "Satoshigyn"
 #define Site        "https://github.com/satoshigynn/config-celular"

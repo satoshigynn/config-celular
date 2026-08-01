@@ -292,6 +292,21 @@ if(-not $SkipApks){
     }
     $devAbiList = @(((& $Adb shell getprop ro.product.cpu.abilist) -join '').Trim() -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if(-not $devAbiList){ $devAbiList = @(((& $Adb shell getprop ro.product.cpu.abi) -join '').Trim()) }
+
+    # ---- verificacao de apps por ADB -----------------------------------------
+    # Com verifier_verify_adb_installs=1 o aparelho consulta o Play Protect
+    # antes de deixar instalar. Sem internet, ou se o servico demora a
+    # responder, a instalacao morre em INSTALL_FAILED_VERIFICATION_FAILURE -
+    # de forma INTERMITENTE, o que confunde: o mesmo APK instala numa hora e
+    # falha na seguinte, no mesmo aparelho.
+    # Aqui a verificacao e desligada so durante esta etapa e devolvida ao valor
+    # original no finally, inclusive se algo estourar no meio.
+    $verifAntes = ((& $Adb shell settings get global verifier_verify_adb_installs) -join '').Trim()
+    if($verifAntes -eq '1' -and -not $DryRun){
+      & $Adb shell settings put global verifier_verify_adb_installs 0 2>$null | Out-Null
+      Write-Host "  (verificacao de apps por ADB desligada durante a instalacao)" -ForegroundColor DarkGray
+    }
+    try {
     Get-ChildItem $apkDir -Filter *.apk | ForEach-Object {
       if($DryRun){ Write-Host ("  [seria instalado] {0}" -f $_.Name) -ForegroundColor Yellow; return }
       # pula APKs de OUTRA arquitetura silenciosamente (ex: APK arm64 num aparelho 32-bit) - o bundle/loja cobre
@@ -307,6 +322,7 @@ if(-not $SkipApks){
       } else {
         $reason = if($r -match "NO_MATCHING_ABIS"){ "APK incompativel com a arquitetura deste celular (ex: APK arm64 num aparelho 32-bit)" }
                   elseif($r -match "already installed|newer version|VERSION_DOWNGRADE"){ "ja instalado (versao igual/mais nova)" }
+                  elseif($r -match "INSTALL_FAILED_VERIFICATION_FAILURE"){ "o aparelho barrou pela verificacao de apps. Desligue 'Verificar apps por USB' nas Opcoes do desenvolvedor (ou de internet a ele) e rode de novo" }
                   elseif($r -match "INSTALL_FAILED_\w+"){ $Matches[0] }
                   else { ($r -replace '\s+',' ').Trim() }
         Write-Host ("  {0,-28} [pulado] {1}" -f $_.Name, $reason) -ForegroundColor Yellow
@@ -327,7 +343,16 @@ if(-not $SkipApks){
       $sel = @($apks | Where-Object { ($_.Name -notmatch $abiPat) -or ($_.Name -match ("config\.$([regex]::Escape($devAbi))\.")) })
       $r = (& $Adb install-multiple -r -d @($sel.FullName) 2>&1 | Out-String)
       $ok = ($r -match "Success")
-      Write-Host ("  {0,-28} {1}" -f $bn, $(if($ok){"[instalado (bundle $devAbi)]"}else{"[FALHOU] "+(($r -replace '\s+',' ').Trim())})) -ForegroundColor $(if($ok){"Green"}else{"Yellow"})
+      $porque = if($r -match "INSTALL_FAILED_VERIFICATION_FAILURE"){ "o aparelho barrou pela verificacao de apps (veja as Opcoes do desenvolvedor)" }
+                else { ($r -replace '\s+',' ').Trim() }
+      Write-Host ("  {0,-28} {1}" -f $bn, $(if($ok){"[instalado (bundle $devAbi)]"}else{"[FALHOU] $porque"})) -ForegroundColor $(if($ok){"Green"}else{"Yellow"})
+    }
+    } finally {
+      # devolve a verificacao ao valor original - inclusive se a etapa estourou
+      if($verifAntes -eq '1' -and -not $DryRun){
+        & $Adb shell settings put global verifier_verify_adb_installs 1 2>$null | Out-Null
+        Write-Host "  (verificacao de apps por ADB restaurada)" -ForegroundColor DarkGray
+      }
     }
   } else {
     Write-Host "`n(Pasta .\apks nao existe - pulei instalacao de APKs)" -ForegroundColor DarkGray

@@ -4,6 +4,24 @@ O `publicar.ps1` lê este arquivo: pega o bloco `## <versão>` correspondente e
 grava o texto como `notas` no `publicar/versao.json`. É esse texto que aparece
 no painel, em Configurações → Atualização.
 
+## 6.2
+
+Instalação de APK deixa de falhar por causa da verificação de apps.
+
+**`INSTALL_FAILED_VERIFICATION_FAILURE`.** Quando o aparelho tem
+`verifier_verify_adb_installs` ligado, ele consulta o Play Protect antes de
+deixar instalar por ADB. Sem internet, ou se o serviço demora a responder, a
+instalação é recusada — e de forma intermitente: o mesmo APK entra numa
+tentativa e falha na seguinte, no mesmo celular. Agora a etapa desliga essa
+verificação enquanto instala e devolve o valor original no fim, inclusive se
+algo estourar no meio.
+
+Num lote de 7 aparelhos, era o único com a verificação ligada; os outros seis
+estavam com ela desligada de fábrica. Daí a falha parecer aleatória.
+
+**Mensagem de erro útil.** Quando ainda assim a verificação barrar, o script
+diz o que fazer em vez de imprimir só o código do erro.
+
 ## 6.1
 
 Pacote completo com os aplicativos incluídos, e dois erros do setup corrigidos.

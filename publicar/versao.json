@@ -1,7 +1,7 @@
 {
-    "versao":  "6.1",
-    "notas":  "Pacote completo com os aplicativos incluídos, e dois erros do setup corrigidos.",
-    "gerado":  "2026-07-31",
+    "versao":  "6.2",
+    "notas":  "Instalação de APK deixa de falhar por causa da verificação de apps.",
+    "gerado":  "2026-08-01",
     "arquivos":  [
                      {
                          "caminho":  "atualizar-apks.ps1",
@@ -21,11 +21,11 @@
                      },
                      {
                          "caminho":  "LEIA-ME.txt",
-                         "sha256":  "065bc6b21c60bf008f3a6f6f1a80ebcfaa22adf058085db18b12876d0f244518"
+                         "sha256":  "f40c0b08da45a412a96e9358a4a61105e7f693534722783ce15ece7f272e88de"
                      },
                      {
                          "caminho":  "MANUAL-PAINEL.txt",
-                         "sha256":  "c007e03a3a89ef020bbbd6792ccfad1a4f1558b3d0d6e60dabd7562fcad8b90d"
+                         "sha256":  "4ea06a59dd22ee16ab010df742534d5a70d46ceda402c5a445c132f1e3e6b089"
                      },
                      {
                          "caminho":  "painel/app/core/api.js",
@@ -217,7 +217,7 @@
                      },
                      {
                          "caminho":  "setup-celular.ps1",
-                         "sha256":  "3010a474923aa1b5e00ffc635997842215faf8318412645c4c05fff4c5d46179"
+                         "sha256":  "797c37cac7df2a301647d83867c5e3a32ec68380c73ca61e2d908ce642367822"
                      }
                  ]
 }
