@@ -47,7 +47,10 @@ function Achar-Aapt {
   )
   foreach ($b in $bases) {
     if (-not (Test-Path -LiteralPath $b)) { continue }
-    foreach ($d in (Get-ChildItem -LiteralPath $b -Directory -EA SilentlyContinue | Sort-Object Name -Descending)) {
+    # -Force e obrigatorio: o Android Studio marca as pastas de versao do
+    # build-tools como HIDDEN, e sem ele o Get-ChildItem devolve lista vazia -
+    # o aapt existia, nao era achado, e o catalogo saia com versionName vazio.
+    foreach ($d in (Get-ChildItem -LiteralPath $b -Directory -Force -EA SilentlyContinue | Sort-Object Name -Descending)) {
       foreach ($n in @('aapt2.exe', 'aapt.exe')) {
         $p = Join-Path $d.FullName $n
         if (Test-Path -LiteralPath $p) { return $p }
