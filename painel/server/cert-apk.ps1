@@ -138,6 +138,18 @@ function Usar-Apksigner([string]$exe, [string]$arquivo) {
 }
 
 # ============================ MODO 2: parser proprio (reserva) ==============
+# Carrega um certificado DER nas duas plataformas. O X509CertificateLoader so
+# existe no .NET 9+; o apks.cjs chama este script pelo powershell.exe (Windows
+# PowerShell 5.1, .NET Framework), onde o tipo NAO existe - a chamada estourava
+# dentro do try e o parser devolvia $null, como se o APK nao tivesse assinatura.
+# Dai o fallback para o construtor do X509Certificate2, presente nas duas.
+function Carregar-Cert([byte[]]$der) {
+  if (([System.Management.Automation.PSTypeName]'System.Security.Cryptography.X509Certificates.X509CertificateLoader').Type) {
+    return [System.Security.Cryptography.X509Certificates.X509CertificateLoader]::LoadCertificate($der)
+  }
+  return New-Object System.Security.Cryptography.X509Certificates.X509Certificate2(,$der)
+}
+
 # --- APK Signing Block (v2 / v3 / v3.1): a fonte confiavel -------------------
 function Get-CertDoBloco([string]$caminho) {
   $fs = $null
@@ -180,12 +192,15 @@ function Get-CertDoBloco([string]$caminho) {
       if ($tamPar -lt 4 -or ($fs.Position + $tamPar) -gt $fim) { break }
       $id = [long][Convert]::ToUInt32($br.ReadUInt32())
       $valor = $br.ReadBytes([int]($tamPar - 4))
-      if ($id -eq 0x7109871A -or $id -eq 0xF05368C0 -or $id -eq 0x1B93AD61) { $achados[$id] = $valor }
+      # sufixo L obrigatorio: sem ele o PowerShell le 0xF05368C0 como Int32 NEGATIVO
+      # (-262969152) e a comparacao com o id lido (UInt32, positivo) nunca casa - o v3
+      # passava despercebido. Os outros dois cabem em Int32 positivo, mas ficam L por igualdade.
+      if ($id -eq 0x7109871AL -or $id -eq 0xF05368C0L -or $id -eq 0x1B93AD61L) { $achados[$id] = $valor }
     }
     if ($achados.Count -eq 0) { return $null }
 
-    $ordem = @(0x1B93AD61, 0xF05368C0, 0x7109871A)   # v3.1, v3, v2
-    $nomes = @{ 0x1B93AD61 = 'v3.1'; 0xF05368C0 = 'v3'; 0x7109871A = 'v2' }
+    $ordem = @(0x1B93AD61L, 0xF05368C0L, 0x7109871AL)   # v3.1, v3, v2
+    $nomes = @{ 0x1B93AD61L = 'v3.1'; 0xF05368C0L = 'v3'; 0x7109871AL = 'v2' }
     $presentes = @()
     foreach ($k in $ordem) { if ($achados.ContainsKey($k)) { $presentes += $nomes[$k] } }
 
@@ -213,7 +228,7 @@ function Get-CertDoBloco([string]$caminho) {
         if ($tamCert -le 0 -or $q + $tamCert -gt $v.Length) { continue }
         $der = New-Object byte[] ([int]$tamCert)
         [Array]::Copy($v, $q, $der, 0, [int]$tamCert)
-        $cert = [System.Security.Cryptography.X509Certificates.X509CertificateLoader]::LoadCertificate($der)
+        $cert = Carregar-Cert $der
         return [pscustomobject]@{ Cert = $cert; Esquemas = ($presentes -join '+') }
       } catch { continue }
     }

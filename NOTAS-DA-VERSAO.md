@@ -4,6 +4,41 @@ O `publicar.ps1` lê este arquivo: pega o bloco `## <versão>` correspondente e
 grava o texto como `notas` no `publicar/versao.json`. É esse texto que aparece
 no painel, em Configurações → Atualização.
 
+## 6.3
+
+Leitura de assinatura de APK consertada: sem ela, nenhuma atualização de APK
+passava mais.
+
+**Nenhum APK entrava mais na pasta.** O `cert-apk.ps1` compara o certificado de
+quem assinou o APK novo com o do que já está guardado, e descarta o download se
+não bater. O leitor de reserva (o parser próprio, usado quando o Android SDK não
+está instalado) chamava o `X509CertificateLoader` para montar o certificado — um
+tipo que só existe no .NET 9+. Mas o `apks.cjs` invoca o script pelo
+`powershell.exe`, que é o Windows PowerShell 5.1, rodando sobre .NET Framework:
+ali o tipo não existe. A chamada estourava dentro do `try`, o parser devolvia
+`$null` e o painel concluía que o pacote não tinha assinatura nenhuma —
+descartando um APK legítimo.
+
+Enquanto os APKs ainda traziam assinatura v1 (o `META-INF` do JAR), o caminho
+reserva do v1 disfarçava o problema. Os builds atuais da Play Store abandonaram
+o v1: aí não sobrou fallback e **toda** atualização passou a falhar com
+"assinatura diferente", incluindo a do WhatsApp, que é v2/v3 puro há mais tempo.
+Agora o certificado é carregado por um caminho que existe nas duas plataformas.
+
+**O esquema v3 nunca era detectado.** O identificador do bloco v3 é
+`0xF05368C0`, e o PowerShell lê literais hexadecimais como `Int32` com sinal:
+esse valor virava **-262969152**. Comparado com o id lido do arquivo (um
+`UInt32`, positivo), nunca casava. Com o sufixo `L` os três identificadores
+ficam positivos e o v3 aparece.
+
+**Versão errada no registro de bundles.** Um app instalado em partes (base +
+splits) é guardado numa pasta, não num `.apk` solto. O `doAparelho` devolvia só
+o nome dessa pasta, sem o campo `bundle` que a orquestração usa para achar o
+`base.apk` lá dentro — então a leitura da versão apontava para o diretório, o
+`aapt` falhava e o `_versoes.json` acabava gravando a versão instalada no
+celular, com `origem: "aparelho"`. Coincidia quando o bundle vinha do próprio
+aparelho; se viesse de outra fonte, o número registrado era de outra coisa.
+
 ## 6.2
 
 Aviso de versão nova no alto da tela, e instalação de APK que não falha mais

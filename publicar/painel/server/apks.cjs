@@ -456,7 +456,11 @@ async function doAparelho(app, serial, diga) {
   fs.rmSync(dir, { recursive: true, force: true });
   fs.renameSync(tmpDir, dir);
   const bytes = fs.readdirSync(dir).reduce((s, f) => s + fs.statSync(path.join(dir, f)).size, 0);
-  return { bytes, arquivo: nomeBundle, splits: caminhos.length };
+  // 'bundle' e o que a orquestracao usa para achar o base.apk dentro da pasta e ler
+  // a versao DO ARQUIVO. Sem ele, alvoLido apontava para o diretorio, o aapt falhava
+  // e a versao registrada vinha do celular (origem 'aparelho') - errada se o bundle
+  // tivesse vindo de outra fonte que nao o proprio aparelho.
+  return { bytes, arquivo: nomeBundle, bundle: nomeBundle, splits: caminhos.length };
 }
 
 /* ---------------------------------------------------------- orquestracao -- */

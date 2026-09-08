@@ -1,7 +1,7 @@
 {
-    "versao":  "6.2",
-    "notas":  "Aviso de versão nova no alto da tela, e instalação de APK que não falha mais por causa da verificação de apps.",
-    "gerado":  "2026-08-01",
+    "versao":  "6.3",
+    "notas":  "Leitura de assinatura de APK consertada: sem ela, nenhuma atualização de APK passava mais.",
+    "gerado":  "2026-09-08",
     "arquivos":  [
                      {
                          "caminho":  "atualizar-apks.ps1",
@@ -145,11 +145,11 @@
                      },
                      {
                          "caminho":  "painel/server/apks.cjs",
-                         "sha256":  "9242989d176f3934d40479ee2ff8ddd58b0125e6ef196a77a1afc8c66f49add9"
+                         "sha256":  "6afac87fc0d9b0096780d283eb331b9cf2673c0315fbaff18b041da7ddc94450"
                      },
                      {
                          "caminho":  "painel/server/cert-apk.ps1",
-                         "sha256":  "36ee125e70e7a9d6bbf8b35291ae0160f23e4c85b2f8f1cff8591d1ca1e524f0"
+                         "sha256":  "326909daa660ede95d830d7f85c2e09bead13b6538030e0d9693142b45799f36"
                      },
                      {
                          "caminho":  "painel/server/core.cjs",
@@ -189,7 +189,7 @@
                      },
                      {
                          "caminho":  "painel/server/routes/system.cjs",
-                         "sha256":  "14195ea7edd9c117cedce848df92d3fc0dafef890d429dac3262898f33f2aed3"
+                         "sha256":  "48edeaeb43dec9b7a0fa5c185310b63e365392bd86382d430a4e893327f299ea"
                      },
                      {
                          "caminho":  "painel/server/routes/tools.cjs",
