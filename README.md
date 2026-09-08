@@ -18,18 +18,18 @@ sozinhas).
 
 <div align="center">
 
-### ⬇ [**Baixar (pacote completo)**](https://github.com/satoshigynn/config-celular/releases/download/v6.2/ConfigCelular-6.2-completo.exe)
+### ⬇ [**Baixar (pacote completo)**](https://github.com/satoshigynn/config-celular/releases/download/v6.3/ConfigCelular-6.3-completo.exe)
 
-**versão 6.2** &nbsp;·&nbsp; Windows 10/11 &nbsp;·&nbsp; [todas as versões](https://github.com/satoshigynn/config-celular/releases)
+**versão 6.3** &nbsp;·&nbsp; Windows 10/11 &nbsp;·&nbsp; [todas as versões](https://github.com/satoshigynn/config-celular/releases)
 
 </div>
 
 | Arquivo | Para quem |
 |---|---|
-| [**ConfigCelular-6.2-completo.exe**](https://github.com/satoshigynn/config-celular/releases/download/v6.2/ConfigCelular-6.2-completo.exe) | **O normal.** Traz os aplicativos junto — instala numa máquina nova e já dá para preparar celular, sem baixar mais nada. |
-| [ConfigCelular-6.2-instalador.exe](https://github.com/satoshigynn/config-celular/releases/download/v6.2/ConfigCelular-6.2-instalador.exe) | Só o programa, 41 MB. A pasta `apks\` chega vazia. Para quem já tem os aplicativos ou só quer atualizar. |
-| [ConfigCelular-6.2-portatil.zip](https://github.com/satoshigynn/config-celular/releases/download/v6.2/ConfigCelular-6.2-portatil.zip) | Sem instalar nada. Descompacte onde quiser e rode o `Abrir Painel.exe` — dá para levar num pendrive. |
-| [SHA256SUMS.txt](https://github.com/satoshigynn/config-celular/releases/download/v6.2/SHA256SUMS.txt) | Conferir se o download veio íntegro. |
+| [**ConfigCelular-6.3-completo.exe**](https://github.com/satoshigynn/config-celular/releases/download/v6.3/ConfigCelular-6.3-completo.exe) | **O normal.** Traz os aplicativos junto — instala numa máquina nova e já dá para preparar celular, sem baixar mais nada. |
+| [ConfigCelular-6.3-instalador.exe](https://github.com/satoshigynn/config-celular/releases/download/v6.3/ConfigCelular-6.3-instalador.exe) | Só o programa, 41 MB. A pasta `apks\` chega vazia. Para quem já tem os aplicativos ou só quer atualizar. |
+| [ConfigCelular-6.3-portatil.zip](https://github.com/satoshigynn/config-celular/releases/download/v6.3/ConfigCelular-6.3-portatil.zip) | Sem instalar nada. Descompacte onde quiser e rode o `Abrir Painel.exe` — dá para levar num pendrive. |
+| [SHA256SUMS.txt](https://github.com/satoshigynn/config-celular/releases/download/v6.3/SHA256SUMS.txt) | Conferir se o download veio íntegro. |
 
 Os três instalam o mesmo programa e atualizam a mesma instalação, preservando
 suas listas. A diferença é só o que vem dentro da pasta `apks\`.
@@ -39,7 +39,7 @@ Já vem com ADB, scrcpy e Node embutidos: não precisa instalar mais nada.
 Para conferir o download, no PowerShell:
 
 ```powershell
-Get-FileHash ConfigCelular-6.2-completo.exe -Algorithm SHA256
+Get-FileHash ConfigCelular-6.3-completo.exe -Algorithm SHA256
 ```
 
 O resultado tem que ser igual à linha correspondente do `SHA256SUMS.txt`.

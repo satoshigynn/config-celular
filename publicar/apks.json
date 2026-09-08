@@ -1,10 +1,16 @@
 {
-    "geradoEm":  "2026-07-31",
+    "geradoEm":  "2026-09-08",
     "apks":  [
                  {
+                     "arquivo":  "Facebook.apk",
+                     "versionName":  "574.0.0.40.71",
+                     "sha256":  "daff61f20aac1b55cf5f88435ce1dbb973766e32dbcc35ecf762562c9ee33cab",
+                     "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Facebook.apk"
+                 },
+                 {
                      "arquivo":  "FacebookLite.apk",
-                     "versionName":  "516.0.0.10.103",
-                     "sha256":  "e84beb6d095779fd5b85bf68653b21e8995e022b5270240db1048f3b9d7903b0",
+                     "versionName":  "524.0.0.7.106",
+                     "sha256":  "3732daf360d75fbac038cc80f5b1aec89c5004d145147c4ee2a40007d43c3f90",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/FacebookLite.apk"
                  },
                  {
@@ -15,14 +21,14 @@
                  },
                  {
                      "arquivo":  "MetaAds.apk",
-                     "versionName":  "483.0.0.47.106",
-                     "sha256":  "43e8933332f9e984064355420431cec8d7378b67e205a6a93e72bc731c1be4d4",
+                     "versionName":  "491.1.0.58.105",
+                     "sha256":  "bd95f139a4ca53dfca58c1a1b6b81b1a9e5bc94a7cdc930cc4eeb01209d2c8f1",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/MetaAds.apk"
                  },
                  {
                      "arquivo":  "Telegram.apk",
-                     "versionName":  "12.9.1",
-                     "sha256":  "a7b9f37f59ce758fea480e3d80dab1f668e82b4a1572885a1adb5405106f3b6c",
+                     "versionName":  "12.10.1",
+                     "sha256":  "f5e1192725772960cc94b83e54ffd8939f876b2b6e5f21d4a8537eb6fcba50e6",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/Telegram.apk"
                  },
                  {
@@ -33,14 +39,14 @@
                  },
                  {
                      "arquivo":  "WhatsApp.apk",
-                     "versionName":  "2.26.30.70",
-                     "sha256":  "62e31856b41c4444ccda19a6917e1bcf2b4b6881ef8a67f7560a9b9e44292210",
+                     "versionName":  "2.26.35.71",
+                     "sha256":  "56c3717b1c994779a0e6fd966615567d5b097e7abcf3ba29d9e52ea8f2d0d590",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsApp.apk"
                  },
                  {
                      "arquivo":  "WhatsAppBusiness.apk",
-                     "versionName":  "2.26.24.79",
-                     "sha256":  "396a1cb6da3dc832d59077a258eda89efb81b52d2373e78e3574c6fa407a21f5",
+                     "versionName":  "2.26.32.77",
+                     "sha256":  "bb6155b4612a519e8027a867bc5eb7100fd506d4b2634b77f6c9d8ae24cb2587",
                      "url":  "https://github.com/satoshigynn/config-celular/releases/download/apks/WhatsAppBusiness.apk"
                  }
              ]
